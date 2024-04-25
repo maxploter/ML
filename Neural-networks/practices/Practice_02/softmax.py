@@ -42,7 +42,7 @@ def softmax_loss_naive(W, X, y, reg):
     z = np.zeros(W.shape[1])
     for j in range(W.shape[1]):
       z[j] = np.dot(W[:, j], x)
-    z -= np.max(z)
+    z -= np.max(z) # Practical issues: Numeric stability
     denominator = np.sum(np.exp(z))
     for j, zj in enumerate(z):
       p[j] = np.exp(zj) / denominator
@@ -90,8 +90,8 @@ def softmax_loss_vectorized(W, X, y, reg):
   # Make sure you take the average.                                           #
   # If you are not careful with softmax, you migh run into numeric instability#
   #############################################################################
-  Z = X @ W
-  Z -= np.max(Z, axis=1, keepdims=True)  # TODO: Is it necessary
+  Z = X @ W # NxD @ DxC
+  Z -= np.max(Z, axis=1, keepdims=True) # NxC
   P = np.exp(Z) / np.sum(np.exp(Z), axis=1, keepdims=True)
   loss = - np.sum(np.log(P[np.arange(X.shape[0]), y])) / X.shape[0]
 

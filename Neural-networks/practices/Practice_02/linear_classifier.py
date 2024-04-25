@@ -52,7 +52,7 @@ class LinearClassifier(object):
       # Hint: Use np.random.choice to generate indices. Sampling with         #
       # replacement is faster than sampling without replacement.              #
       #########################################################################
-      indices = np.random.choice(num_train, batch_size, replace=True)
+      indices = np.random.choice(num_train, batch_size, replace=False)
       X_batch = X[indices]
       y_batch = y[indices]
       #########################################################################
@@ -97,9 +97,9 @@ class LinearClassifier(object):
     # TODO:                                                                   #
     # Implement this method. Store the predicted labels in y_pred.            #
     ###########################################################################
-    Z = X @ self.W
-    Z -= np.max(Z, axis=1, keepdims=True)  # TODO: Is it necessary
-    P = np.exp(Z) / np.sum(np.exp(Z), axis=1, keepdims=True)
+    Z = X @ self.W # NxD @ DxC
+    Z -= np.max(Z, axis=1, keepdims=True)  # NxC
+    P = np.exp(Z) / np.sum(np.exp(Z), axis=1, keepdims=True) # NxC
     y_pred = np.argmax(P, axis=1)
     ###########################################################################
     #                           END OF YOUR CODE                              #
