@@ -1,0 +1,160 @@
+---
+title: "lab07"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(ISLR)          # for the Auto dataset
+library(mgcv)
+```
+
+# Local regression
+
+## Exercise 1
+
+* Fit a local regression curve to log(mpg) as a function of horsepower by using quadratic regression and span=0.1, 0.5, 0.8
+
+```{r}
+Auto_mod = Auto|> mutate(logmpg=log(mpg), origin=factor(origin, levels=1:3))|>select(-mpg)
+```
+```{r}
+lr_model1=loess(logmpg~horsepower, data=Auto_mod, span=0.8, control=loess.control(surface = "direct"))
+```
+```{r}
+new_pred = seq(min(Auto_mod$horsepower), max(Auto_mod$horsepower), length.out = 201)
+df1 = data.frame(horsepower = new_pred, fitted = predict(lr_model1, data.frame(horsepower = new_pred)))
+```
+
+```{r}
+plot = ggplot(Auto_mod, aes(x = horsepower)) +
+  geom_point(aes(y = logmpg)) +
+  geom_line(data = df1, aes(y = fitted, color = "span=0.8"))
+```
+
+# Fitting a generalized linear model with many predictors
+
+## Exercise 2
+Use stats::step() function to find the best linear regression model by starting from the model which uses all variables except name. Note that origin should be used as a factor variable. Check for bias with respect to all continuous variables used in the fit. Which ones may require nonlinear modelling?
+
+```{r}
+# Initial linear regression model with all predictors
+lm_full <- lm(logmpg ~. -name, data = Auto_mod)
+
+# Use step() to find the best model via stepwise selection
+lm_step <- stats::step(lm_full)
+
+# Summary of the best model
+summary(lm_step)
+
+# Check for bias (residual plots for continuous variables)
+par(mfrow = c(2, 2))  # Set up plotting grid
+plot(lm_step)
+```
+
+```{r}
+df2=augment(lm_step, new_data = Auto_mod) |> inner_join(Auto_mod)
+```
+```{r}
+ggplot(df2, aes(x=weight, y=.resid)) + geom_point() + geom_smooth()
+```
+
+
+```{r}
+ggplot(df2, aes(x=horsepower, y=.resid)) + geom_point() + geom_smooth()
+```
+
+```{r}
+ggplot(df2, aes(x=year, y=.resid)) + geom_point() + geom_smooth()
+```
+
+```{r}
+ggplot(df2, aes(x=displacement, y=.resid)) + geom_point() + geom_smooth()
+```
+
+## Exercise 3
+* Fit a generalized additive model to the data by adding natural spline with 3 degrees of freedom to year variable and smoothing splines to displacement and weight terms (keeping other therms from the best model of the previous exercise). Compare by 5-fold cross-validation the results obtained with similar model where three-dimensional smoothing term in the form of tensor products (indicated with term te()) is added instead of individual smoothing and spline terms. Which model is better?
+
+```{r}
+m3 <- gen_additive_mod(mode="regression") |> fit(logmpg ~ cylinders + s(displacement) + horsepower + s(weight) + splines::ns(year, df=3), data=Auto_mod)
+```
+```{r}
+df3 = augment(m3, new_data = Auto_mod)
+```
+```{r}
+ggplot(df3, aes(x=year, y=.resid)) + geom_point() + geom_smooth()
+```
+
+```{r}
+ggplot(df3, aes(x=horsepower, y=.resid)) + geom_point() + geom_smooth()
+```
+
+Horsepower improved after we introduced a non-linearity to other predictors.
+
+```{r}
+summary(m3$fit)
+```
+
+```{r}
+plot(m3$fit)
+```
+
+```{r}
+
+set.seed(20241017)
+cv_data <- vfold_cv(Auto_mod, v = 5)
+
+
+wf_3_1 = workflow() |> add_recipe(recipe(logmpg ~ ., data=Auto_mod)) |>
+  add_model(gen_additive_mod(mode = "regression"), formula = logmpg ~ cylinders + s(displacement) + horsepower + s(weight) + splines::ns(year, df=3) + origin)
+
+# Cross-validation
+res_3_1 <- wf_3_1 |>
+  fit_resamples(cv_data, metrics = metric_set(rmse))
+
+# Compare the results
+collect_metrics(res_3_1)
+```
+
+```{r}
+wf_3_2 = workflow() |> add_recipe(recipe(logmpg ~ ., data=Auto_mod)) |>
+  add_model(gen_additive_mod(mode = "regression"), formula = logmpg ~ cylinders + te(displacement, weight, year) + horsepower + origin)
+
+# Cross-validation
+res_3_2 <- wf_3_2 |>
+  fit_resamples(cv_data, metrics = metric_set(rmse))
+
+# Compare the results
+collect_metrics(res_3_2)
+```
+
+
+## Exercise 4
+* Instead of using tensor product splines, it is possible to fit multivariate non-linear smoothing terms with thin plate splines by including multiple variables in a single s() command and leaving the parameter bs to it’s default value (which is “tp”, thin plate splines). When using multivariate thin plate splines, the variables should be on a similar scale, so normalization is recommended. Compute cross-validation results of fitting similar model as previously with te() term without normalization and compare the results to the case, when the variables year,weigth and displacement are normalised.
+
+```{r}
+wf_4_1 = workflow() |> add_recipe(recipe(logmpg ~ ., data=Auto_mod)) |>
+  add_model(gen_additive_mod(mode = "regression"), formula = logmpg ~ cylinders + s(displacement, weight, year) + horsepower + origin)
+
+# Cross-validation
+res_4_1 <- wf_4_1 |>
+  fit_resamples(cv_data, metrics = metric_set(rmse))
+
+# Compare the results
+collect_metrics(res_4_1)
+```
+Standardization of variables is important so impact of units of variables is not important.
+
+```{r}
+wf_4_1 = workflow() |> add_recipe(recipe(logmpg ~ ., data=Auto_mod) |> step_normalize(displacement, weight, year) ) |>
+  add_model(gen_additive_mod(mode = "regression"), formula = logmpg ~ cylinders + s(displacement, weight, year) + horsepower + origin)
+
+# Cross-validation
+res_4_1 <- wf_4_1 |>
+  fit_resamples(cv_data, metrics = metric_set(rmse))
+
+# Compare the results
+collect_metrics(res_4_1)
+```
+
