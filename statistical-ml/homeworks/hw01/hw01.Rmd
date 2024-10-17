@@ -1,0 +1,136 @@
+---
+title: "Homework 01"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(GGally)
+```
+
+
+## Exercise 1
+
+Check visually the file for presence of missing values. Use read_delim command (indicating the symbol for missing values if needed) to read in the data set Carseats_mod2.csv into a variable Carseats (the command should be included in your solution).
+
+```{r}
+Carseats <- read_delim("Carseats_mod2.csv", delim = ";", na = ".", skip = 3)
+```
+
+```{r}
+Carseats
+```
+
+
+* Make sure that all variables that, according to description, should be numeric are numeric after reading data in.
+
+```{r}
+Carseats <- Carseats |>
+  mutate(Sales = as.numeric(Sales),
+         CompPrice = as.numeric(CompPrice),
+         Income = as.numeric(Income),
+         Advertising = as.numeric(Advertising),
+         Population = as.numeric(Population),
+         Price = as.numeric(Price),
+         Age = as.numeric(Age),
+         Education = as.numeric(Education))
+```
+
+
+
+```{r}
+Carseats
+```
+
+## Exercise 2
+
+Use summary() function to look at summary information about variables so that you see also list of values of character columns. 
+
+```{r}
+summary(Carseats|>mutate(across(where(is.character),factor)))
+```
+
+
+* Do you see anything which may indicate data errors? What? How many missing values are in the data set? (Hint - summary function works well with factor variables)
+
+ShelveLoc variable has categories `Bad`, `Good`, and `Medium`. However, there is an entry labeled lowercase "bad", which is likely a data entry error. This should be corrected as it represents the same category as `Bad`.
+
+Age Max. value is 126.0 highly unlikely.
+
+Missing Values:
+
+* ShelveLoc variable has 1 missing value.
+* CompPrice variable has 2 missing values.
+* Income variable has 1 missing value.
+* Price variable has 2 missing values.
+
+Total 6 missing values across 4 columns.
+
+## Exercise 3
+
+Use na.omit() command to define a new data set Carseats2 where rows with missing values in the original data are left out
+
+```{r}
+Carseats2 <- na.omit(Carseats)
+```
+
+```{r}
+summary(Carseats2|>mutate(across(where(is.character),factor)))
+```
+
+## Exercise 4
+
+Use select() command to select columns from Sales to Advertising and from Price to Age from Carseats2 and apply ggpairs() function to the the result. 
+
+```{r}
+selected_data <- Carseats2 |> select(Sales:Advertising, Price:Age)
+```
+
+```{r}
+ggpairs(selected_data, progress=FALSE)
+```
+
+* Are any possible data errors visible from the output?
+
+Column ShelveLoc has 4th level category "bad" which should be replaced with "Bad".
+
+## Exercise 5
+
+Use mutate() command with if_else() to correct data error in one of the factor variables, store the corrected data with the same name Carseats2
+
+```{r}
+Carseats2 <- Carseats2 |> mutate(ShelveLoc = if_else(ShelveLoc == "bad", "Bad", ShelveLoc))
+```
+
+```{r}
+summary(Carseats2|>mutate(across(where(is.character),factor)))
+```
+## Exercise 6
+
+* Use summarize() command from dplyr package to compute a table with mean price for each combination of Urban and ShelveLoc
+
+```{r}
+mean_price_summary <- Carseats2 |>
+  group_by(Urban, ShelveLoc) |>
+  summarize(mean_price = mean(Price), .groups='drop')
+```
+
+```{r}
+print(mean_price_summary)
+```
+
+## Exercise 7
+
+Use ggplot() with geom_point to produce a scatter plot of Age (on x-axis) and Sales, color points according to ComPrice. Discuss the graph - is it sowing expected relationships between variables?
+
+```{r}
+ggplot(Carseats2, aes(x = Age, y = Sales, color = CompPrice)) +
+  geom_point() +
+  labs(title = "Scatter Plot of Age vs Sales",
+       x = "Age",
+       y = "Sales",
+       color = "CompPrice")
+```
+
+Plot does not show any obvious relationships between Age and Sales or between Sales and CompPrice.
+We can observe an outlier with an age of more than 125, which might be an error in the data.

@@ -1,0 +1,161 @@
+---
+title: "HW03"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(leaps)
+```
+
+## Problem 1
+
+* Use the command set.seed(study_book_no), where study_book_no is the numeric part your study book number, at the beginning of your solution. This should be the only set.seed() command in your solution. 
+
+```{r}
+set.seed(39692)
+```
+
+
+* Set up model evaluation framework by splitting the data to test and train set (80% for training) and further form 10-fold cross-validation data splits from the training data for model selection.
+
+```{r}
+df <- read_delim("hw3_C39692.csv", delim = ",")
+```
+
+```{r}
+splitted=initial_split(df,prop=0.8)
+train_df=training(splitted)
+test_df=testing(splitted)
+head(test_df)
+```
+
+```{r}
+cvdata=vfold_cv(train_df, v=10)
+```
+
+```{r}
+rec_base = recipe(y~.,data=df) |> step_dummy(all_nominal_predictors())
+
+# mixture 0 is Ridge
+# Note that in order for the fitting engine to consider small values of 𝜆
+# it is necessary to give sufficiently small value for the parameter lambda.min.ratio of glmnet command, which can be done by 
+# supplying the value of this parameter with set_engine command when defining model specification.
+wf=workflow() |> 
+  add_model(linear_reg(penalty=tune(),mixture=0) |>set_engine("glmnet",lambda.min.ratio=10^(-6)))|>add_recipe(rec_base)
+```
+
+
+## Problem 2
+
+* Find the best penalty parameter for the Ridge regression model (considering 10 penalty values from 0.001*sd(y) to 10*sd(y) which are uniformly spaced in logarithmic scale ) by using cross-validation and compute RMSE of this model on test set. Note that one way to get values from a to b which are uniformly spaced in log scale is exp(seq(log(a),log(b),length.out=n)).
+
+```{r}
+res=tune_grid(wf,
+              resamples=cvdata,
+              grid=data.frame(
+                penalty=exp(seq(log(10^(-3)*sd(train_df$y)), log(10*sd(train_df$y)), length.out=10)))
+              )
+show_best(res,metric="rmse")
+```
+
+
+```{r}
+wf_final=finalize_workflow(wf,select_best(res,metric="rmse"))
+final_ridge=wf_final|>last_fit(splitted)
+final_ridge|>collect_metrics()
+```
+
+```{r}
+final_ridge|>extract_fit_parsnip()|>tidy()|>filter(term!='(Intercept)')|>summarize(nonzero=sum(abs(estimate)>10^(-10)))
+```
+
+
+* Is the value of the RMSE close to the cross-validation result?
+
+The value of the RMSE on the test set (1.2097) is lower than the average RMSE from cross-validation (1.340876). Typically, we expect the test set RMSE to be higher because the test set is unseen to the fitted model. I assume it might happen due to random fluctuation in the dataset split. It indicates that the model generalizes well but may have been slightly better suited to the test data compared to the cross-validation folds.
+
+I experimented with 2 other seeds and I get slightly smaller differene in the RMSE value, but the RMSE on test set was smaller for all seeds I tried. To summaries, I have some doubts in my assumption about superior performance on the test set.
+
+
+## Problem 3
+Find the best penalty parameter for the Lasso regression model (considering 10 different penalty values from 0.001σy to σy by using cross-validation and compute RMSE of this model on test set. 
+
+```{r}
+wf_lasso=workflow()|> add_model(linear_reg(penalty=tune(),mixture=1)|>set_engine("glmnet",lambda.min.ratio=10^(-6)))|>add_recipe(rec_base)
+res_lasso=tune_grid(
+  wf_lasso,cvdata,
+  grid=data.frame(penalty=data.frame(penalty=10^(seq(log10(0.0001 * sd(train_df$y)), log10(sd(train_df$y)), length.out = 10))))
+  ) 
+show_best(res_lasso, metric="rmse")
+```
+
+```{r}
+res_lasso |> collect_metrics() |> filter(.metric=="rmse")
+```
+
+
+```{r}
+wf_final_lasso = finalize_workflow(wf_lasso, select_best(res_lasso, metric = "rmse"))
+final_lasso = wf_final_lasso |>
+  last_fit(splitted)
+final_lasso|>collect_metrics()
+```
+
+```{r}
+final_lasso|> extract_fit_parsnip()|>tidy()|>slice(-1)|>summarize(nonzero=sum(abs(estimate)!=0))
+```
+
+
+Is the value of the RMSE close to the cross-validation result?
+
+The value of the RMSE on the test set (1.2100297) is lower than the average RMSE from cross-validation (1.311249).
+
+## Problem 4
+* Use Lasso regression to select the best 10 variables to a linear model (or if exactly 10 is not possible according to the table of degrees of freedom for different penalties, then select largest number of variables not exceeding 10). 
+
+```{r}
+wf_final_lasso=wf_final_lasso|>fit(train_df)
+wf_final_lasso
+```
+```{r}
+# 0.02238 // 58 vars
+# 0.48830 // 10 vars
+
+wf_lasso_select <- workflow()|>add_recipe(rec_base)|>add_model(linear_reg(engine="glmnet",mixture=1,penalty=0.48830))
+wf_lasso_select_fitted = fit(wf_lasso_select,train_df)
+selected_vars = tidy(wf_lasso_select_fitted)|>filter(estimate!=0)|>slice(-1)|>pull(term)
+selected_vars
+```
+
+
+* Use those variables to fit a linear model by standard fitting procedure using the data in the training set and compute it’s performance on the test set. 
+
+
+
+```{r}
+lasso_10_vars_formula <- as.formula(paste("y ~", paste(selected_vars, collapse = " + ")))
+
+rec_lm <- recipe(lasso_10_vars_formula, data = train_df)
+
+wf_lm <- workflow() |>
+  add_model(linear_reg()) |>
+  add_recipe(rec_lm)
+
+lm_fit <- fit(wf_lm, data = train_df)
+
+lm_pred <- predict(lm_fit, new_data = test_df) |> 
+  bind_cols(test_df)
+
+lm_rmse <- rmse(lm_pred, truth = y, estimate = .pred)
+
+lm_rmse
+```
+
+* Is the performance on the test set better or worse than for the best Lasso model?
+
+The performance on test set is worse than for best Lasso model. For this problem we've selected not the optimal number of variables (10 versus 58 predicted by the best Lasso model). I assume that might be the main reason for the lower performance for 10 variables model. 
+
+If we check other results from Problem 3 (Lasso), the penalty  0.5184508974 which is closer to 10 variables has a large	rmse	standard of	2.260505 . 

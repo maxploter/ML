@@ -1,0 +1,318 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(ISLR)          # for the Auto dataset
+```
+
+## Exercise 1
+Consider Auto dataset. Our aim is to predict logarithm of mpg by weight by polynomial regression. Use the full data set as training set.
+
+Create a data set which contains the weight column and values of three orthogonal polynomials. Produce a graph where all three polynomials are shown. Compare the results to the case when standard power function values are created.
+
+Create two different sets of 10-fold crossvalidation splits. Use tidymodels framework with recipes to find the best degree of polynomials by using crossvalidation on the first set. Which model would you choose based on cross-validation results? Compute also the crossvalidation RMSE of the model you chose based on the second set of splits.
+
+
+```{r}
+rec1_1 = recipe(~weight, data=Auto) |> step_mutate(x=weight) |> step_poly(weight, degree=3)
+
+df1 = rec1_1 |> prep() |> bake(new_data=NULL)
+
+ggplot(df1, aes(x=x)) + 
+  geom_line(aes(y=weight_poly_1, color="phi1")) + 
+  geom_line(aes(y=weight_poly_2, color="phi2")) +
+  geom_line(aes(y=weight_poly_3, color="phi3"))
+```
+
+```{r}
+Auto_mod = Auto|> select(mpg, weight)
+ggplot(Auto_mod, aes(x=weight, y=mpg))+geom_point()
+```
+
+```{r}
+set.seed(20241010)
+
+cv_tuning = vfold_cv(Auto_mod, v = 10)
+
+cv_comparison = vfold_cv(Auto_mod, v = 10)
+
+```
+
+
+```{r}
+
+poly_recipe <- recipe(mpg ~ weight, data = Auto_mod) |>
+  step_poly(weight, degree=tune(), options = list(raw = FALSE))  # using orthogonal polynomials
+
+# Define the model specification (linear regression model)
+lm_model = linear_reg() %>%
+  set_engine("lm")
+
+# Define the workflow
+poly_workflow <- workflow() %>%
+  add_recipe(poly_recipe) %>%
+  add_model(lm_model)
+
+```
+
+```{r}
+# Define the grid of polynomial degrees to try
+degree_grid <- tibble(degree = 1:10)
+
+# Perform cross-validation to tune the polynomial degree
+cv_results_1 <- tune_grid(
+  poly_workflow,
+  resamples = cv_tuning,
+  grid = degree_grid,
+  metrics = metric_set(rmse)
+)
+
+# Step 5: Analyze the cross-validation results
+# Collect the metrics
+cv_metrics_1 <- cv_results_1 %>%
+  collect_metrics()
+```
+
+```{r}
+cv_results_1
+```
+
+
+```{r}
+show_best(cv_results_1, metric="rmse")
+```
+
+```{r}
+ggplot(cv_metrics_1, aes(x = degree, y = mean)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "RMSE for Different Degrees of Polynomial (1st CV Set)",
+       x = "Degree of Polynomial",
+       y = "Cross-Validation RMSE")
+```
+```{r}
+poly_workflow|> finalize_workflow(select_best(cv_results_1, metric="rmse"))|>
+  fit_resamples(cv_comparison)|>
+  collect_metrics()
+```
+
+
+
+```{r}
+
+# Step 6: Choose the best model based on cross-validation results
+best_degree <- cv_results_1 %>%
+  select_best("rmse") %>%
+  pull(degree)
+
+# Print the chosen degree of polynomial
+cat("The best polynomial degree is:", best_degree, "\n")
+
+# Step 7: Evaluate the chosen model on a second set of CV splits
+# Create a second set of 10-fold cross-validation splits
+set.seed(456)
+cv_splits_2 <- vfold_cv(auto_data, v = 10)
+
+# Update the recipe with the chosen degree
+best_poly_recipe <- poly_recipe %>%
+  update_role(weight, new_role = "predictor") %>%
+  step_poly(weight, degree = best_degree, options = list(raw = FALSE))
+
+# Update the workflow with the best recipe
+best_poly_workflow <- poly_workflow %>%
+  update_recipe(best_poly_recipe)
+
+# Perform cross-validation on the second set of splits
+cv_results_2 <- fit_resamples(
+  best_poly_workflow,
+  resamples = cv_splits_2,
+  metrics = metric_set(rmse)
+)
+
+# Collect and summarize RMSE from the second set of splits
+cv_metrics_2 <- cv_results_2 %>%
+  collect_metrics()
+
+# Print the cross-validation RMSE from the second set of splits
+cv_metrics_2
+```
+
+## Exercise 2
+Compute RMSE on the second crossvalidation set for the stepwise regression model for mpg in terms of weight when four bins with break points 2000,3000,4000
+ are used. How does the result compare to the performance of the best polynomial regression model?
+
+
+```{r}
+step_recipe <- recipe(mpg ~ weight, data = Auto_mod) %>%
+  step_cut(weight, breaks = c(2000, 3000, 4000), include_outside_range = TRUE)
+```
+
+```{r}
+# Linear regression model specification
+lm_model <- linear_reg() %>%
+  set_engine("lm")
+
+# Create the workflow
+step_workflow <- workflow() %>%
+  add_recipe(step_recipe) %>%
+  add_model(lm_model)
+
+```
+
+
+```{r}
+# Fit the stepwise model on the second cross-validation set
+step_results <- fit_resamples(
+  step_workflow,
+  resamples = cv_comparison,
+  metrics = metric_set(rmse)
+)
+
+# Collect the RMSE metrics
+step_rmse_metrics <- step_results %>%
+  collect_metrics()
+
+# Print the RMSE for the stepwise regression model
+step_rmse_metrics
+```
+
+```{r}
+# Best polynomial model's RMSE from Exercise 1
+poly_workflow %>%
+  finalize_workflow(select_best(cv_results_1, metric = "rmse")) %>%
+  fit_resamples(cv_comparison) %>%
+  collect_metrics()
+
+```
+
+## Exercise 3
+Find the best number of subintervals with approximately equal number of observations by using cross-validation with the first crossvalidation set. Which number of subintervals would you use? Compute the cross-validation result of the chosen model on the second crossvalidation set.
+
+### Tune number of bins
+
+```{r}
+bin_recipe <- recipe(mpg ~ weight, data = Auto_mod) %>%
+  step_discretize(weight, num_breaks = tune(), options = list(keep_na = FALSE))
+```
+
+```{r}
+lm_model <- linear_reg() %>%
+  set_engine("lm")
+
+# Create a workflow that includes the recipe and model
+bin_workflow <- workflow() %>%
+  add_recipe(bin_recipe) %>%
+  add_model(lm_model)
+```
+
+
+```{r}
+# Define the grid of possible bin numbers to try
+bin_grid <- tibble(num_breaks = c(2,4,8,16))  # Trying between 2 and 10 bins
+
+# Tune the model using cross-validation
+bin_cv_results <- tune_grid(
+  bin_workflow,
+  resamples = cv_tuning,
+  grid = bin_grid,
+  metrics = metric_set(rmse)
+)
+
+# Collect the metrics for each number of bins
+bin_cv_metrics <- bin_cv_results %>%
+  collect_metrics()
+
+# Print the cross-validation metrics
+bin_cv_metrics
+
+```
+
+```{r}
+show_best(bin_cv_results, metric="rmse")
+
+```
+
+
+```{r}
+# Best polynomial model's RMSE from Exercise 1
+bin_workflow %>%
+  finalize_workflow(select_best(bin_cv_results, metric = "rmse")) %>%
+  fit_resamples(cv_comparison) %>%
+  collect_metrics()
+
+```
+
+
+## Exercise 4
+Find the best number of knots (corresponding to empirical quantiles of the weight variable) for regression with linear splines. Compare the results with previous models
+
+```{r}
+# Recipe to introduce B-splines for 'weight' with tunable degrees of freedom (knots)
+spline_recipe <- recipe(mpg ~ weight, data = Auto_mod) %>%
+  step_bs(weight, deg_free = tune(), degree = 1)  # Linear splines (degree = 1)
+
+```
+
+
+```{r}
+# Define the linear regression model
+lm_model <- linear_reg() %>%
+  set_engine("lm")
+
+# Create a workflow that includes the recipe and model
+spline_workflow <- workflow() %>%
+  add_recipe(spline_recipe) %>%
+  add_model(lm_model)
+
+```
+
+```{r}
+spline_grid <- tibble(deg_free = c(2,4,8,16))  # Trying between 3 and 10 degrees of freedom (knots)
+
+# Tune the model using cross-validation
+spline_cv_results <- tune_grid(
+  spline_workflow,
+  resamples = cv_tuning,
+  grid = spline_grid,
+  metrics = metric_set(rmse)
+)
+```
+
+```{r}
+spline_cv_metrics <- spline_cv_results %>%
+  collect_metrics()
+
+# Print the cross-validation metrics for different degrees of freedom (knots)
+spline_cv_metrics
+```
+
+```{r}
+# Find the best number of knots (degrees of freedom) based on RMSE
+best_spline <- show_best(spline_cv_results, metric = "rmse")
+
+# Print the best number of knots
+best_spline
+
+```
+```{r}
+# Finalize the workflow with the best number of knots (deg_free)
+final_spline_workflow <- spline_workflow %>%
+  finalize_workflow(select_best(spline_cv_results, metric = "rmse"))
+
+# Fit the finalized model on the second cross-validation set
+spline_final_results <- final_spline_workflow %>%
+  fit_resamples(cv_comparison) %>%
+  collect_metrics()
+
+# Print the final results (RMSE on the second cross-validation set)
+spline_final_results
+
+```
+
+
+## Exercise 5
+Find the best model model using regression model with natural cubic splines. Which of the fitted models (taking into account also models fitted in previous exercises) was the best for predicting logarithm of mpg?

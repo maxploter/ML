@@ -1,0 +1,379 @@
+---
+title: "Lab 02"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(GGally)
+library(broom)
+```
+
+
+## Exercise 1
+
+
+```{r}
+Advertising <- read_delim("advertising.csv", delim = ",", na = ".")
+```
+
+```{r}
+head(Advertising)
+```
+
+
+
+```{r}
+model_radio <- lm(Sales ~ Radio, data = Advertising)
+
+# Summary of the model
+summary(model_radio)
+```
+
+```{r}
+tidy(model_radio)
+glance(model_radio)
+```
+
+
+```{r}
+# Fit the linear model for Sales vs. TV
+model_tv <- lm(Sales ~ TV, data = Advertising)
+
+# Summary of the model
+summary(model_tv)
+```
+
+
+```{r}
+tidy(model_tv)
+glance(model_tv)
+```
+
+
+* Is any of the models (assuming we can trust statistical information given by the fitting procedure) useful for predictions? Why?
+
+Yes, because the perform better than using constant value. They contain some information that on average allow us to provide better ...
+
+* Which one is better and why?
+
+If we believe future behaves as past, 
+adj.r.score is reasonable estimate how model should behave in the future (adj possibility of overfitting is taken into account).
+The larger value is better. 0 if model gives average and 1 if always correct.
+
+TV model is more useful because it has 0.8112271
+
+* What is the average increase of the number of units sold per additional thousand dollars spent on Radio advertising? Same question about TV advertising?
+
+For Radio increase is ~124
+For TV increase is ~55
+
+How accurately we can predict the average number of units sold when 100000 dollars are spent on TV advertising? Give prediction and 80% confidence interval!
+
+? what does it mean we can predict average behaviour but not the real prediction? If the average is what you're after, if you really want to say what would be in the future?
+
+
+```{r}
+# Data for $100,000 spent on TV advertising
+new_data <- data.frame(TV = 100)
+
+# Predicting with confidence interval
+prediction <- predict(model_tv, newdata = new_data, interval = "confidence", level = 0.80)
+print(prediction)
+```
+
+
+
+How accurately we can predict the number of units sold when 100000 dollars are spent on TV advertising? Give prediction and 80% prediction interval!
+
+```{r}
+# Predicting with prediction interval
+prediction_interval <- predict(model_tv, newdata = new_data, interval = "prediction", level = 0.80)
+print(prediction_interval)
+```
+
+
+Use augmentcommand to add model performance information (fitted values, residuals, …) to the data which was used for fitting the model Sales~TV. Use this augmented data set to form a point plot of data (Sales vs TV) together with line plot of predictions (using color="red" outside of aes() command)
+
+
+```{r}
+# Augment the model with fitted values and residuals
+augmented_data <- augment(model_tv, Advertising)
+
+# Plot Sales vs TV with predictions (line in red)
+ggplot(augmented_data, aes(x = TV, y = Sales)) +
+  geom_point() +                              # Actual data points
+  geom_line(aes(y = .fitted), color = "red") + # Fitted values
+  labs(title = "Sales vs TV Advertising with Predictions",
+       x = "TV Advertising Budget (in thousands)",
+       y = "Sales (in thousands of units)")
+
+```
+
+Variability is not constant. Variance increases when budget increases. When constant variance is not sutisfied we can't trust of prediction.
+
+
+Fit a model for Sales using all predictors in the data set. Compare it to the model with the least important predictor removed. Does removing a predictor reduce or increase the quality of the model? Why?
+
+```{r}
+Sales_all = lm(Sales~., data=Advertising)
+glance(Sales_all)
+tidy(Sales_all)
+```
+
+
+```{r}
+Sales_TV_Radio = lm(Sales~.-Newspaper, data=Advertising)
+glance(Sales_TV_Radio)
+tidy(Sales_TV_Radio)
+```
+
+AIC and BIC is smaller should indicate better model. Removing variable probably gives us better model for describing variable.
+adj.r.squared increases 
+
+## Exercise 2
+
+Use tidymodels framework to fit a linear model for Sales in terms of Radio for the advertising data set. Compute prediction in the case when 20000 dollars is spent on radio advertising together with 95% prediction interval and 95% confidence interval.
+
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+```
+
+
+```{r}
+rec <- recipe(Sales ~ Radio, data = Advertising)
+```
+
+
+```{r}
+model_spec <- linear_reg()
+```
+
+
+```{r}
+wf <- workflow() |>
+  add_model(model_spec) |>
+  add_recipe(rec)
+```
+
+```{r}
+fitted_workflow <- wf |> fit(data = Advertising)
+```
+
+```{r}
+glance(fitted_workflow)
+tidy(fitted_workflow)
+```
+```{r}
+augment(fitted_workflow, new_data=Advertising)
+```
+
+
+```{r}
+new_data <- tibble(Radio = 20)
+```
+
+```{r}
+# Prediction interval
+prediction_interval <- predict(fitted_workflow, new_data, type = "pred_int", level = 0.95)
+
+# Confidence interval
+confidence_interval <- predict(fitted_workflow, new_data, type = "conf_int", level = 0.95)
+
+```
+
+
+```{r}
+linear_model_fit <- extract_fit_engine(fitted_workflow)
+
+# Augment the data with fitted values and residuals
+augmented_data <- augment(linear_model_fit, Advertising)
+```
+
+```{r}
+augmented_data
+```
+
+
+## Exercise 3
+
+What does Augment do?
+
+```{r}
+baseplot = ggplot(augment(Sales_TV_Radio))
+```
+
+### Fitted values vs residuals (prediction errors).
+
+```{r}
+baseplot + geom_point(aes(x=.fitted, y=.resid)) + geom_smooth(aes(x=.fitted, y=.resid))
+```
+
+*Bias* means that we may have mostly positive errors for some predicted values (for example, for small predicted values or for large values of a predictor) and mostly positive errors for some other region of predicted values or predictor values.
+
+*Heteroscedasticity* means that the size of the residuals change with the predicted value. This also makes statistical information about coefficients invalid. Often can be corrected by using logarithmic (or more general Box-Cox) transformation of the response variable or by adding relevant variables to the model.
+
+### Predictors vs residuals: TV
+
+Help to detect prediction bias for some values of given predictor. Can be corrected by adding suitable computed variables.
+
+```{r}
+baseplot + geom_point(aes(x=TV, y=.resid)) + geom_smooth(aes(x=TV, y=.resid))
+```
+
+There's a bias in certain regions.
+Add polynomials is not the good choice. 
+
+### quantile-quantile plot
+
+quantile-quantile plot with respect to normal distribution. Measures of fit which use likelihood of observations are computed under assumption of normal distribution and may be invalid when actual distribution of residuals is quite different from the normal distribution. Additionally important in the case of small data sets
+
+```{r}
+residuals_tv <- resid(model_tv)
+
+qqnorm(residuals_tv, main = "Q-Q Plot of Residuals for Sales ~ TV")
+qqline(residuals_tv, col = "red")
+```
+
+### Plot of standardized residuals vs leverage
+
+Residuals give information about outliers (suspicious values of the response variable). Leverage is a measure of how much a change in particular 𝑦value at given 𝐱influences predicted vale 𝑦̂ (depends only on how different the current 𝐱 is from the average 𝐱
+ value and on the number of observations). High leverage indicates data points which may potentially have large influence on the fitted model. Combination of large (in absolute value) residual and large leverage indicates a point which influences model quite strongly. Cook’s distance measures how much predictions change when a given point is removed from the data set and practical recommendation is that points with Cook’s distance higher than 1 should be very carefully checked.
+
+```{r}
+plot(model_tv, which = 5)
+```
+```{r}
+# Load required package
+library(ggplot2)
+
+# Calculate leverage and standardized residuals
+leverage <- hatvalues(model_tv)
+standardized_residuals <- rstandard(model_tv)
+
+# Cook's distance
+cooks_distance <- cooks.distance(model_tv)
+
+# Create a data frame to store leverage, residuals, and Cook's distance
+influence_data <- data.frame(leverage, standardized_residuals, cooks_distance)
+
+# Plot standardized residuals vs leverage with Cook's distance as size
+ggplot(influence_data, aes(x = leverage, y = standardized_residuals)) +
+  geom_point(aes(size = cooks_distance), alpha = 0.6) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+  labs(title = "Standardized Residuals vs Leverage", 
+       x = "Leverage", 
+       y = "Standardized Residuals") +
+  theme_minimal() +
+  scale_size_continuous(name = "Cook's Distance") +
+  theme(legend.position = "bottom")
+```
+
+
+```{r}
+prefix <- "/Users/maksimploter/projects/ML/statistical-ml/labs/lab01/Datasets of Lab 1-20240905/"
+
+auto_data <- read_delim(paste0(prefix, "Auto.csv"), delim = ",")
+```
+
+```{r}
+model_weight = lm(mpg~weight, data=auto_data)
+glance(model_weight)
+tidy(model_weight)
+```
+
+```{r}
+# Summary of the model
+summary(model_weight)
+```
+
+
+p-value is small (commonly less than 0.05), the null hypothesis is rejected, indicating that the predictor variable is likely to have a statistically significant effect on the response variable.
+
+
+```{r}
+par(mfrow = c(2, 2))  # Plot all diagnostics at once
+plot(model_weight)
+```
+```{r}
+# Create a recipe: Add inv_weight (1/weight) and remove the original weight
+rec <- recipe(mpg ~ weight, data = auto_data) |>
+  step_mutate(inv_weight = 1/weight) |>  # Add inv_weight
+  step_rm(weight)  # Remove the original weight variable
+
+
+# Specify the model (linear regression)
+model_spec <- linear_reg()
+
+# Create a workflow to combine the recipe and model
+wf <- workflow() %>%
+  add_model(model_spec) %>%
+  add_recipe(rec)
+
+# Fit the model
+fitted_wf <- wf %>% fit(data = auto_data)
+
+# View the fitted model results
+tidy(fitted_wf)
+```
+
+```{r}
+# Extract the fitted linear model
+fitted_model <- extract_fit_engine(fitted_wf)
+
+# Summary of the fitted model
+summary(fitted_model)
+```
+```{r}
+par(mfrow = c(2, 2))  # Plot all diagnostics at once
+plot(fitted_model)
+```
+
+The R-squared for the transformed model is higher (0.7067) compared to the original model (0.6926). This means that the transformed model explains more variance in mpg than the original model. The increase in R-squared suggests that using the inverse of weight as a predictor leads to a better fit.
+
+In both models, the p-value is extremely small (< 2.2e-16), indicating that the predictors (both weight and inv_weight) are statistically significant in explaining mpg. Despite the transformation, the p-value remains the same, confirming that both predictors are highly significant.
+
+Original model: Residual standard error = 4.333
+Transformed model: Residual standard error = 4.232
+The residual standard error is slightly lower in the transformed model, which suggests that the transformed model predicts mpg with less error compared to the original model.
+
+5. F-statistic
+Original model: F-statistic = 878.8
+Transformed model: F-statistic = 939.9
+The F-statistic is higher in the transformed model, indicating that the overall significance of the model has increased. This reinforces the conclusion that the transformed model provides a better fit to the data.
+
+
+### Exercise 4 
+
+Let us use data set iris which is included in R default datasets.
+fit a linear model for Sepal.Length in terms of Petal.Length and the name of spieces
+
+```{r}
+model1 <- lm(Sepal.Length ~ Petal.Length + Species, data = iris)
+summary(model1)
+```
+
+```{r}
+model2 <- lm(Sepal.Length ~ Petal.Length * Species, data = iris)
+summary(model2)
+```
+
+
+
+Compare the previous model to the model which contains also interactions of the two predictors used in the previous model. Which one would you use for predictions?
+
+
+```{r}
+# Load the iris dataset
+data(iris)
+
+# Split data into training and testing sets
+set.seed(123)
+iris_split <- initial_split(iris, prop = 0.8)
+iris_train <- training(iris_split)
+iris_test <- testing(iris_split)
+
+```
+

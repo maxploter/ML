@@ -1,0 +1,130 @@
+---
+title: "lab04"
+output: html_notebook
+---
+
+```{r}
+library(ISLR)         # For Credit dataset
+library(tidymodels)   # For initial_split, training, and testing
+library(tidyverse)    # For data manipulation
+```
+
+
+```{r}
+initial_transformation = recipe(mpg~cylinders + weight + year + origin, data=ISLR::Auto) |> 
+  step_num2factor(origin, levels=c("American", "Eurupean", "Japanese"))
+  #step_dummy(all_nominal_predictors())
+```
+
+```{r}
+model_spec <- linear_reg()
+
+wf1 <- workflow() |>
+  add_model(model_spec) |>
+  add_recipe(initial_transformation)
+
+wf1_fitted <- wf |> fit(data=Auto)
+
+tidy(model)
+```
+
+```{r}
+glance(model)
+```
+
+
+# Exercise 2
+
+```{r}
+set.seed(1007)
+
+splitted_data <- initial_split(ISLR::Auto, prop = 0.7)
+
+train_df <- training(splitted_data)
+
+test_df <- testing(splitted_data)
+```
+
+```{r}
+View(test_df)
+```
+
+
+```{r}
+wf_training_fitted = wf |> fit(train_df)
+```
+
+```{r}
+data_with_pred2 = augment(wf_training_fitted, new_data = test_df)
+data_with_pred2 |> metrics(truth = mpg, estimate = .pred)
+
+#Alternative way of getting metrics on test set
+last_fit(wf, splitted_data, metrics=metric_set(rmse, rsq, mae)) |> collect_metrics()
+```
+
+## Confidence internval for rmse?
+
+t-test for one sample
+
+
+```{r}
+
+t_test_mse = data_with_pred2 |> mutate(se=(mpg-.pred)^2)|>pull(se) |> t.test(conf.level=0.9)
+
+sqrt(t_test_mse$conf.int)
+
+```
+
+```{r}
+names(t_test_mse)
+```
+
+## Exercise 3
+
+```{r}
+set.seed(123)
+
+# Monte Carlo cross-validation
+validation <- mc_cv(train_df, prop = 0.7, times = 1)
+
+# model directly to the data
+rec1=recipe(mpg~cylinders + weight + year + origin, data=Auto)
+base_wf=workflow() |> add_model(linear_reg())
+
+wf1= base_wf |> add_recipe(rec1)
+
+# Moder after transforming origin to factor
+rec2 = rec1 |> step_num2factor(origin, levels=c("American", "Eurupean", "Japanese"))
+wf2 = base_wf |> add_recipe(rec2)
+
+# Model with inverse weight
+rec3 = rec2 |> step_mutate(inv_weight=1/weight) |> step_rm(weight)
+
+wf3 = base_wf |> add_recipe(rec3)
+
+#Compute results
+
+mod1_val = wf1 |> fit_resamples(validation, control = control_resamples(save_pred = TRUE))
+
+# mod1_val |> collect_metrics()
+# mod1_val$.metrics
+
+mod2_val = wf2 |> fit_resamples(validation, control = control_resamples(save_pred = TRUE))
+mod3_val = wf3 |> fit_resamples(validation, control = control_resamples(save_pred = TRUE))
+
+list(original=mod1_val, factor_origin=mod2_val, inv_weight=mod3_val) |> map_df(collect_metrics, .id="model") |> filter(.metric=="rmse")
+
+```
+
+
+
+```{r}
+errors = collect_predictions(mod1_val) |> left_join(collect_predictions(mod3_val), by=c(".row", "mpg")) |>
+  mutate(e1=(mpg-.pred.x)^2, e2=(mpg-.pred.y)^2) |> select(e1, e2)
+
+t.test(errors$e1, errors$e2, paired = TRUE, conf.level=0.9)
+```
+
+
+
+

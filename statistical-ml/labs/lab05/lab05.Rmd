@@ -1,0 +1,129 @@
+---
+title: "Lab 05"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+```
+## Exercise 1
+Read in the data from lab5data.csv. It is a generated data set with 1 response y and 200 potential predictors such that y corresponds to a linear model with a small number of variables. Divide the data to training and test data so that 100 observations are in the test set.
+
+```{r}
+lab_data <- read_delim("lab5data.csv", delim = ",")
+```
+```{r}
+set.seed(1014)
+
+splitted_lab_data <- initial_split(lab_data, prop = 0.8)
+
+train_df <- training(splitted_lab_data)
+
+test_df <- testing(splitted_lab_data)
+```
+
+
+## Exercise 2
+Use the two-way stepwise selection starting from the simplest model based on AIC to find a candidate for the best model based on training set and compute it’s RMSE on test set. How many variables the method selected? How many variables are selected when BIC is used for model selection?
+
+```{r}
+df_recipe = recipe(y~., data=train_df)
+
+df_prepped = prep(df_recipe)
+
+df_baked = bake(df_prepped, new_data = train_df)
+```
+
+
+```{r}
+null_model <- lm(y ~ 1, data = df_baked)
+
+full_model <- lm(y ~ ., data = df_baked)
+
+stepwise_model <- stats::step(null_model, 
+                       scope = list(lower = null_model, upper = full_model), 
+                       direction = "both", 
+                       trace=FALSE,
+                       k = 2)  #AIC
+```
+
+```{r}
+formula(stepwise_model)
+tidy(stepwise_model)
+```
+
+```{r}
+stepwise_model_bic <- stats::step(null_model, 
+                       scope = list(lower = null_model, upper = full_model), 
+                       direction = "both", 
+                       trace=FALSE,
+                       k = log(nrow(df_baked)))  #BIC
+```
+
+```{r}
+formula(stepwise_model_bic)
+tidy(stepwise_model_bic)
+```
+
+```{r}
+data_with_pred3 = augment(stepwise_model, new_data = test_df) # aic
+
+data_with_pred3 |> metrics(truth = y, estimate = .fitted)
+```
+
+
+
+```{r}
+data_with_pred2 = augment(stepwise_model_bic, new_data = test_df) # bic
+
+data_with_pred2 |> metrics(truth = y, estimate = .fitted)
+```
+
+## Exercise 3
+
+Let us use Ridge regression for fitting the model. 
+
+For this, let us use glmnet engine for linear_reg() command. In this command, parameter mixture shows the proportions of Lasso and Ridge regularizations (0 is Ridge regression, 1 is Lasso). 
+
+Fit models with normalization of predictors (which is default behavior), determine by 5-fold cross-validation the best value for penalty parameter from the list of (0.001,0.01,0.1,1)*sd(y) and use the resulting best model for computing RMSE on test set. Note that in order for the fitting engine to consider small values of 𝜆
+ it is necessary to give sufficiently small value for the parameter lambda.min.ratio of glmnet command, which can be done by supplying the value of this parameter with set_engine command when defining model specification.
+ 
+```{r}
+library(glmnet)
+```
+ 
+ 
+```{r}
+# Monte Carlo cross-validation
+cv_data <- vfold_cv(train_df, v = 5)
+
+# model directly to the data
+rec1=recipe(y~., data=train_df)
+
+# Ridge mixture 0
+model_spec3 = linear_reg(penalty=tune(), mixture = 0)|> set_engine("glmnet")
+
+base_wf=workflow() |> add_model(model_spec3)
+
+wf1= base_wf |> add_recipe(rec1)
+``` 
+
+```{r}
+tune_grid=data.frame(penalty=10^(-3:0)*sd(train_df$y))
+res3=tune_grid(wf1, resamples=cv_data, grid=tune_grid)
+show_best(res3, metric="rmse")
+```
+
+```{r}
+# Select the best penalty parameter from tuning results
+best_params <- select_best(res3, metric = "rmse")
+
+# Finalize the workflow with the best tuning parameter
+final_wf <- finalize_workflow(wf1, best_params)
+
+# Fit the final model on the entire training data
+final_fit <- fit(final_wf, data = train_df)
+```
+
+

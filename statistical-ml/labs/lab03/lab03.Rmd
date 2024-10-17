@@ -1,0 +1,116 @@
+
+
+
+```{r}
+library(ISLR)         # For Credit dataset
+library(tidymodels)   # For initial_split, training, and testing
+library(tidyverse)    # For data manipulation
+
+```
+
+
+## Exercise 1
+
+Add dummy variables for factor levels to the dataset ISLR::Credit, remove the ID column and divide it into training and testing part so that training data contains 300 observations. Use the command initial_split() for that. The command training(splitted_data) extracts the training data from the result and testing(splitted_data) extracts test set. Before splitting data, use the command set.seed(1007) so that we all get the same results if we use the same version of R.
+
+
+```{r}
+initial_transformation = recipe(Balance~., data=ISLR::Credit) |> 
+  step_dummy(all_nominal_predictors()) |>
+  step_rm(ID)
+```
+
+```{r}
+Credit_transf=initial_transformation|>prep(ISLR::Credit)|>bake(new_data = NULL)
+
+view(Credit_transf)
+```
+
+
+```{r}
+set.seed(1007)
+
+# Split the data into training (300 observations) and testing sets
+splitted_data <- initial_split(ISLR::Credit, prop = 3/4) # 300 / nrow(ISLR::Credit)
+
+# Extract the training set (300 observations)
+training_df <- training(splitted_data)
+
+# Extract the test set (remaining observations)
+testing_df <- testing(splitted_data)
+
+# Step 3: Prepare the recipe using the training data
+trained_recipe <- prep(initial_transformation, training = training_df)
+
+# Step 4: Apply the trained recipe to both training and testing sets
+training_transf <- bake(trained_recipe, new_data = training_df)
+testing_transf <- bake(trained_recipe, new_data = testing_df)
+```
+
+
+## Exercise 2
+Use the command leaps::regsubsets() to find the best models for each subset size. In order to look at all model sizes, the parameter nvmax should be set to high enough value. To choose the overall best model, we should fix a measure for comparing models with different number of parameters. Which model is the best when we use Cp,BIC or adjusted 𝑅2
+? Which model is best if we use AIC for selection criterion?
+
+
+
+```{r}
+library(leaps)        # For regsubsets()
+```
+
+```{r}
+models <- regsubsets(Balance ~ ., data = training_transf, nvmax = 11)
+```
+
+```{r}
+plot(models, scale='bic')
+models_info <-tidy(models)
+```
+```{r}
+models_info|>mutate(nvars=row_number(), best_adj_r2=rank(-adj.r.squared), best_bic=rank(BIC), best_cp=rank(mallows_cp)) |> 
+  select(nvars, best_adj_r2, best_bic, , best_cp)
+```
+
+## Exercise 3
+Check which of the models actually work best for the concrete test set.
+
+```{r}
+predictor_info=select(models_info, where(is_logical))|>select(-'(Intercept)')
+predictor_info
+
+predictors=colnames(predictor_info)
+predictors
+
+predictors[unlist(predictor_info[3,])]
+
+selected_predictors <- predictors[unlist(predictor_info[3,])]
+selected_predictors
+```
+
+```{r}
+#library(Metrics)
+
+# Function to fit and predict using selected predictors
+fit_and_predict <- function(selected_predictors, train_data, test_data) {
+  # Fit a linear model using the selected predictors
+  formula_str <- paste("Balance ~", paste(selected_predictors, collapse = " + "))
+  fit <- lm(as.formula(formula_str), data = train_data)
+  
+  # Predict on the test set
+  predictions <- predict(fit, newdata = test_data)
+  
+  return(predictions)
+}
+
+# Example: Evaluate the 3rd best model
+test_predictions <- fit_and_predict(selected_predictors, training_transf, testing_transf)
+
+# Calculate RMSE (Root Mean Squared Error) on the test set
+rmse_test <- rmse(testing_transf$Balance, test_predictions)
+rmse_test
+```
+
+
+
+## Exercise 4
+Best subset selection is not always possible because it may be too time consuming. A possibility to to use stepwise selection procedures which try to add/remove one variable at a time to improve the final selection measure. It can be done in forward, backward or mixed directions. Use stats::step() to find best models corresponding to those approaches (for mixed search, try starting from the simplest model and also starting from the full model) according to BIC criterion (use k=log(n), where n is the number of observations in the training set. Do all approaches give the same final model? Repeat the exercise by selecting models according to AIC. Hint: fit a full model with lm command and when starting from a simple model, indicate the full model by scope=formula(full_model).

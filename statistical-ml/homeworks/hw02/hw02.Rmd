@@ -1,0 +1,195 @@
+---
+title: "Homework 02"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(leaps)
+```
+
+# Problem
+
+## Problem 1
+* Transform your data so that each level of a nominal variables (except one) is replaced by a separate dummy variable (step_dummy() with default options). In further model fitting use this transformed data set.
+
+```{r}
+df <- read_delim("hw2_C39692.csv", delim = ",")
+```
+
+```{r}
+head(df)
+```
+
+```{r}
+df_recipe = recipe(y~., data=df) |> step_dummy(all_nominal_predictors())
+
+df_prepped = prep(df_recipe)
+
+df_baked = bake(df_prepped, new_data = NULL)
+```
+
+```{r}
+head(df_baked)
+```
+
+
+## Problem 2
+* Use full transformed data set to find best models with two-way stepwise search with the command stats::step(), starting from the simplest model (which predicts a constant value), by using BIC for model selection.
+
+```{r}
+null_model <- lm(y ~ 1, data = df_baked)
+
+full_model <- lm(y ~ ., data = df_baked)
+
+stepwise_model <- stats::step(null_model, 
+                       scope = list(lower = null_model, upper = full_model), 
+                       direction = "both", 
+                       trace=FALSE,
+                       k = log(nrow(df_baked)))  #k = log(n) is sometimes referred to as BIC or SBC.
+
+```
+Also find the best model by backward search, starting with a model with all variables and using BIC for model selection.
+
+```{r}
+backward_model <- stats::step(full_model, 
+                       direction = "backward",
+                       trace=FALSE,
+                       k = log(nrow(df_baked)))
+```
+
+
+```{r}
+summary(stepwise_model)
+```
+
+
+```{r}
+summary(backward_model)
+```
+
+```{r}
+stepwise_formula <- stats::formula(stepwise_model)
+backward_formula <- stats::formula(backward_model)
+
+stepwise_formula
+backward_formula
+```
+* Are the obtained models the same? If not, then which one should be preferred for future predictions if we can assume that the model used for likelihood computations is adequate for the data?
+
+```{r}
+terms_stepwise <- terms(stepwise_formula)
+terms_backward <- terms(backward_formula)
+
+vars_stepwise <- attr(terms_stepwise, "term.labels")
+vars_backward <- attr(terms_backward, "term.labels")
+
+setequal(vars_stepwise, vars_backward)
+```
+
+Yes, both obtained models are the same. Terms in both formulas are the same (the order of terms is not important). If it wasn't the case then we should prefer model with lower BIC value.
+
+* Show a table with information about the coefficients of the best model (estimated values,standard errors,p_values )
+
+```{r}
+glance(stepwise_model)
+glance(backward_model)
+
+tidy(stepwise_model)
+tidy(backward_model)
+```
+
+## Problem 3
+
+* Use exhaustive search with leaps::regsubsets() to find the best model according to BIC which uses up to 10 variables. 
+
+```{r}
+exhaustive_search <- regsubsets(y~., data = df_baked, nvmax = 10, method = "exhaustive", really.big = TRUE)
+```
+
+* Show a table with information about the coefficients of the best model (estimated values,standard errors,p_values ). 
+```{r}
+search_summary <- summary(exhaustive_search)
+
+bic_values <- search_summary$bic
+
+exhaustive_search_best_model_index <- which.min(bic_values)
+
+exhaustive_search_best_model_coef <- coef(exhaustive_search, exhaustive_search_best_model_index)
+```
+
+```{r}
+exhaustive_search_best_model_coef
+```
+
+
+```{r}
+exhaustive_search_formula <- as.formula(paste("y ~", paste(names(exhaustive_search_best_model_coef)[-1], collapse = " + ")))
+
+exhaustive_search_model_fit <- lm(exhaustive_search_formula, data = df_baked)
+
+exhaustive_search_model_summary <- tidy(exhaustive_search_model_fit)
+
+exhaustive_search_model_summary
+```
+
+
+* Is it the same as the best model from the previous step? If not, then which of the models considered so far is the best according to BIC?
+
+```{r}
+exhaustive_search_formula
+stepwise_formula
+```
+
+```{r}
+exhaustive_search_formula_terms <- terms(exhaustive_search_formula)
+
+vars_exhaustive_search <- attr(exhaustive_search_formula_terms, "term.labels")
+
+setequal(vars_stepwise, vars_exhaustive_search)
+```
+
+```{r}
+length(vars_stepwise)
+length(vars_exhaustive_search)
+```
+
+
+```{r}
+BIC(stepwise_model)
+BIC(exhaustive_search_model_fit)
+```
+
+During the exhaustive search we've found a different model comparing with a stepwise search model.
+
+In spite stepwise model having more predictors comparing with exhaustive search model (14 vs 10), stepwise model has lower BIC value.
+We should prefer model with a lower BIC value, so in this case we should choose a *stepwise model*. 
+
+
+## Problem 4
+* Analyze the fit of the best linear model found in previous problems for possible bias in the predictions with respect to numerical variables in the model (plots about residuals with respect to each of the continuous variable in the model, together with a curve showing approximate average value of residuals for each value of the variable under consideration, added with geom_smooth() command). 
+
+```{r}
+best_model <- stepwise_model  
+```
+
+
+
+```{r}
+continuous_vars <- c("X8", "X33", "X40", "X11", "X4", "X44", "X23", "X19", "X29")
+
+for (var in continuous_vars) {
+  p <- baseplot + geom_point(aes_string(x = var, y = ".resid")) +
+    geom_smooth(aes_string(x = var, y = ".resid"), method = 'loess', color = 'blue') +
+    labs(title = paste("Residuals vs", var), x = var, y = "Residuals")
+  print(p)
+}
+```
+
+
+* Is there any evidence that some nonlinear terms with respect to the variables should be added to the model (or to the data before model fitting)?
+
+Yes, some terms show nonlinear relationship with respect to response variable. Terms X44, X23, X29 have curvatures at boundaries, so we may consider adding quadratic terms to the model. 
+
+
