@@ -1,0 +1,201 @@
+---
+title: "HW06_ploter"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(GGally)
+library(discrim)
+```
+
+## Prepare data
+
+Use the command set.seed(your_study_book_nuber) to fix randomness (your_study_book_number should be equal to the numerical part of your study book number).
+
+```{r}
+set.seed(39692)
+```
+
+Use the data from HW6_Loan.csv. The aim is to predict probability of default of new applications. Note that again Education,Gender and OccupationArea are actually nominal variables.
+
+```{r}
+df = read_delim("HW6_Loan.csv", delim = ",")
+
+df = recipe(default ~ ., data = df) |> step_string2factor(default) |> prep() |> bake(new_data=NULL)
+```
+
+
+```{r}
+head(df)
+```
+
+```{r}
+table(df$default)
+```
+
+```{r}
+table(df$Education)
+```
+
+```{r}
+str(df)
+```
+
+```{r}
+levels(df$default)
+```
+
+Split the data into training and model comparison parts (equal size) 
+
+```{r}
+default_split = initial_split(df, prop = 0.5, strata = default)
+train_df = training(default_split)
+test_df = testing(default_split)
+```
+
+```{r}
+df_recipe = recipe(default ~ ., data = train_df) |>
+  step_dummy(all_nominal_predictors()) |>
+  step_normalize(all_numeric_predictors())
+```
+
+## Logistic regression model
+
+Fit the best logistic regression model you can find in reasonable amount of time to the training data and describe what you tried and why the final model is the best of the ones you compared.
+
+```{r}
+df_recipe = recipe(default ~ ., data = train_df) |>
+  step_dummy(all_nominal_predictors()) |>
+  step_normalize(all_numeric_predictors())
+
+log_model = logistic_reg() |>
+  set_engine("glm") |>
+  set_mode("classification")
+
+log_workflow = workflow() |>
+  add_model(log_model) |>
+  add_recipe(df_recipe)
+
+log_fit = fit(log_workflow, data = train_df)
+```
+
+```{r}
+tidy(log_fit)
+```
+
+We consider predictors associated with small p-value.
+
+```{r}
+df_recipe = recipe(default ~ Gender+LoanDuration+DebtToIncome+Education+Education+ExistingLiabilities+OccupationArea, data = train_df) |>
+  step_dummy(all_nominal_predictors()) |>
+  step_normalize(all_numeric_predictors())
+
+log_workflow = workflow() |>
+  add_model(log_model) |>
+  add_recipe(df_recipe)
+
+log_fit = fit(log_workflow, data = train_df)
+```
+
+
+Produce a box plot, which shows predicted probabilities for defaulting loans and for non-defaulting loans on model comparison set.
+
+
+```{r}
+log_preds = predict(log_fit, test_df, type = "prob") |>
+  bind_cols(test_df)
+
+ggplot(log_preds, aes(x = default, y = .pred_Yes)) +
+  geom_boxplot() +
+  labs(title = "Predicted Probabilities for Logistic Regression",
+       x = "Actual Default", y = "Predicted Probability of Default (Yes)")
+
+```
+
+
+Produce confusion matrix when using the model for classification the observations in the model comparison set with cutoff corresponding to probability of default (default=Yes) equal to 0.3. Can defaulting loans be accurately predicted?
+
+```{r}
+augment(log_fit,new_data=test_df)|>mutate(.pred_class=factor(if_else(.pred_Yes>0.3,"Yes","No"),levels=c("No", "Yes")))|>conf_mat(default,.pred_class)
+```
+
+## LDA model
+
+Fit LDA model to the training data leaving out OccupationArea and using all other variables as numeric variables 
+
+```{r}
+lda_model = discrim_linear() |>
+  set_engine("MASS") |>
+  set_mode("classification")
+
+lda_recipe = recipe(default ~ ., data = train_df) |>
+  step_rm(OccupationArea) |>
+  step_normalize(all_numeric_predictors())
+
+lda_workflow = workflow() |>
+  add_model(lda_model) |>
+  add_recipe(lda_recipe)
+
+lda_fit = fit(lda_workflow, data = train_df)
+```
+
+produce box plot of probabilities of default for defaulting loans and non-defaulting loans in the case of model comparison set(predicted probabilities for classes can be obtained by predict(model)$posterior)
+
+```{r}
+lda_preds = predict(lda_fit, test_df, type = "prob") |>
+  bind_cols(test_df)
+
+ggplot(lda_preds, aes(x = default, y = .pred_Yes)) +
+  geom_boxplot() +
+  labs(title = "Predicted Probabilities for LDA",
+       x = "Actual Default", y = "Predicted Probability of Default (Yes)")
+```
+
+
+Compute confusion matrix for predictions of LDA model for observations in the model comparison set in the case of standard cutoff and when the cutoff probabilty 0.3 of default=Yes is used 
+
+```{r}
+augment(lda_fit,new_data=test_df)|>mutate(.pred_class=factor(if_else(.pred_Yes>0.3,"Yes","No"),levels=c("No", "Yes")))|>conf_mat(default,.pred_class)
+```
+
+
+## QDA model
+
+Fit QDA model to the training data leaving out OccupationArea and using all other variables as numeric variables 
+
+```{r}
+qda_model = discrim_quad() |>
+  set_engine("MASS") |>
+  set_mode("classification")
+
+qda_workflow = workflow() |>
+  add_model(qda_model) |>
+  add_recipe(lda_recipe) # Using the same recipe
+
+qda_fit = fit(qda_workflow, data = train_df)
+```
+
+produce box plot of probabilities of default for defaulting loans and non-defaulting loans in the case of model comparison set(predicted probabilities for classes can be obtained by predict(model)$posterior)
+
+```{r}
+qda_preds = predict(qda_fit, test_df, type = "prob") |>
+  bind_cols(test_df)
+
+ggplot(qda_preds, aes(x = default, y = .pred_Yes)) +
+  geom_boxplot() +
+  labs(title = "Predicted Probabilities for QDA",
+       x = "Actual Default", y = "Predicted Probability of Default (Yes)")
+
+```
+
+Compute confusion matrix for predictions of LDA model for observations in the model comparison set in the case of standard cutoff and when the cutoff probabilty 0.3 of default=Yes is used 
+
+```{r}
+augment(qda_fit,new_data=test_df)|>mutate(.pred_class=factor(if_else(.pred_Yes>0.3,"Yes","No"),levels=c("No", "Yes")))|>conf_mat(default,.pred_class)
+```
+
+## Summary
+
+If detecting actual defaults is the priority which might be the case in bank, then logistic regression or LDA models seems more appropriate due to their higher true positive rates and lower false negative rates.
