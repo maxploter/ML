@@ -1,0 +1,169 @@
+---
+title: "Lab10"
+output: html_notebook
+---
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+library(baguette)
+```
+
+## Exercise 1
+Use set.seed(20241107) to fix randomness. After that, divide the dataset into train and test sets (75% for training) and form 5-fold crossvalidation splits. Then find best decision tree model together with performance measures of the fitted model on test set.
+
+```{r}
+set.seed(20241107)
+data(MASS::Boston)
+
+# Split data
+data_split <- initial_split(MASS::Boston, prop = 0.75)
+train_data <- training(data_split)
+test_data <- testing(data_split)
+
+# Cross-validation
+folds <- vfold_cv(train_data, v = 5)
+
+tree_spec <- decision_tree(cost_complexity = tune()) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+
+tree_workflow <- workflow() |>
+  add_model(tree_spec) |>
+  add_formula(crim ~ .)
+
+tune_grid = data.frame(cost_complexity=10^seq(-6,0,length.out=10))
+
+# Tune model with cross-validation
+tree_res <- tune_grid(
+  tree_workflow,
+  resamples = folds,
+  grid = tune_grid,
+  metrics = metric_set(rmse)
+)
+
+tree_res
+
+# Select best model based on RMSE
+best_tree <- select_best(tree_res, metric="rmse")
+
+# Finalize workflow with best model
+final_tree_workflow <- finalize_workflow(tree_workflow, best_tree)
+
+# Fit on training set
+tree_fit <- fit(final_tree_workflow, data = train_data)
+
+# Test set predictions and performance
+tree_predictions <- predict(tree_fit, test_data)
+#tree_metrics <- metric_set(rmse, rsq)(test_data, tree_predictions)
+
+```
+
+## Excercise 2
+Use both approaches for fitting a Bagged Tree model with 30 trees to training set and find predictions on the test set for both prediction problems.
+
+```{r}
+
+rec = recipe(crim~., data=MASS::Boston)
+
+wf2.1=workflow() |> add_recipe(rec) |> 
+  add_model(bag_tree(mode="regression") |> set_engine("rpart", times=30, xval=0))
+
+fit2.1 = wf2.1 |> fit(data=train_data)
+
+augment(fit2.1, new_data = test_data) |> metrics(crim, .pred)
+
+```
+
+```{r}
+
+wf2.2=workflow() |> add_recipe(rec) |> 
+  add_model(rand_forest(mode="regression", mtry=13, trees=500) |> set_engine("ranger", importance="impurity"))
+
+fit2.2 = wf2.2 |> fit(data=train_data)
+
+augment(fit2.2, new_data = test_data) |> metrics(crim, .pred)
+```
+
+
+## Exercise 3
+Use rand_forest() interface to the ranger package to fit random tree models (with default value for mtry) to the training set by using 500 trees. Is there any improvement in the test set performance compared to Bagged Trees? Use also tuning with respect to mtry paremeter with values 2,4,6,8. Which value gives the best performance on crossvalidation set? Does the best model perform better on the test set?
+
+
+```{r}
+
+wf3.1=workflow() |> add_recipe(rec) |> 
+  add_model(rand_forest(mode="regression", trees=500))
+
+fit3.1 = wf3.1 |> fit(data=train_data)
+
+augment(fit3.1, new_data = test_data) |> metrics(crim, .pred)
+```
+
+```{r}
+
+
+wf3.2=workflow() |> add_recipe(rec) |> 
+  add_model(rand_forest(mode="regression", mtry=tune(), trees=500))
+tunning_grid = tibble(mtry=c(2,4,6,8))
+
+tune_res3.2=tune_grid(wf3.2, folds,grid = tunning_grid )
+show_best(tune_res3.2, metric="rmse")
+wf3.2|> finalize_workflow(select_best(tune_res3.2, metric="rmse")) |> last_fit(data_split) |> collect_metrics()
+
+```
+
+
+```{r}
+mod3 = fit3.1|>extract_fit_engine()
+
+mod3$variable.importance|>sort()
+```
+
+
+## Exercise 4
+Determine the best combination of the tree depth and the learning rate (based on RMSE) in the case when 100 trees are used by considering all combinations of the learning rates 0.05,0.1,0.2,0.3,0.4) and tree depths 2,3,4 by tuning. Compute the performance on the test set. Repeat the computations when 10 trees are used. How the combination of the best parameters changed?
+
+```{r}
+boost_spec <- boost_tree(trees = 100, tree_depth = tune(), learn_rate = tune()) |>
+  #set_engine("xgboost") |>
+  set_mode("regression")
+
+boost_workflow <- workflow() |>
+  add_model(boost_spec) |>
+  add_formula(crim ~ .)
+
+# Define grid for tuning
+boost_grid <- expand.grid(tree_depth = c(2, 3, 4), learn_rate = c(0.05, 0.1, 0.2, 0.3, 0.4))
+
+boost_res <- tune_grid(
+  boost_workflow,
+  resamples = folds,
+  grid = boost_grid
+)
+
+show_best(boost_res, metric="rmse")
+
+best_boost
+
+wf3.2|> finalize_workflow(select_best(tune_res3.2, metric="rmse")) |> last_fit(data_split) |> collect_metrics()
+```
+
+## Exercise 5
+Determine the best combination of the tree depth and the learning rate (based on RMSE) in the case when up to 200 trees are allowed, but early stopping after 3 iterations is used when 20% of observations are used for validation. Consider all combinations of the learning rates 0.05,0.1,0.2,0.3,0.4) and tree depths 2,3,4 in tuning. Compute the performance of the best model on the test set. Determine also, how many iterations were actually used in the case of the best model (use extract_fit_engine() to see the description of the model fitted ty last_fit()).
+
+```{r}
+boost_early_spec <- boost_tree(trees = 200, tree_depth = tune(), learn_rate = tune(), stop_iter = 3) |>
+  set_engine("xgboost", validation = 0.2) |>
+  set_mode("regression")
+
+boost_early_res <- tune_grid(
+  boost_workflow,
+  resamples = folds,
+  grid = boost_grid
+)
+
+best_boost_early <- select_best(boost_early_res, metric="rmse")
+best_boost_early
+```
+

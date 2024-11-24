@@ -1,0 +1,219 @@
+---
+title: "L12"
+output: html_notebook
+---
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+library(GGally)
+library(discrim)
+library(kknn)
+```
+
+## Exercise 1
+Divide the dataset into training and comparison parts by keeping proportions of the variable default (75% for training), form a 5-fold cross-validation set from training part, again keeping proportions fixed.
+
+```{r}
+table(ISLR::Default$default)
+```
+
+
+```{r}
+# Split data into training and testing (comparison) sets
+set.seed(20241121)
+default_split <- initial_split(ISLR::Default, prop = 0.75, strata = default)
+train_data <- training(default_split)
+test_data <- testing(default_split)
+
+# 5-fold cross-validation on the training set with class proportions preserved
+cv_folds <- vfold_cv(train_data, v = 5, strata = default)
+```
+
+
+# Fitting models for probability prediction
+
+## Exercise 2
+Fit logistic regression, QDA and generalised additive models (gam with a smoothing term with respect to income) to training set and compute mean log loss on the comparison set. Which one has the smallest loss? Hint: when computing mean log loss, it is a good idea to indicate with event_level="first/second", which level of the outcome variable corresponds to the event for which we provide probabilities.
+
+```{r}
+rec = recipe(default~., data=train_data)
+
+wf_base = workflow()|> add_recipe(rec)
+
+wf_log_reg = wf_base |> add_model(logistic_reg())
+
+wf_final_log_reg = wf_log_reg |> fit(train_data)
+```
+
+
+```{r}
+levels(train_data$default)
+```
+
+
+```{r}
+augment(wf_final_log_reg, new_data = test_data)
+```
+
+
+```{r}
+augment(wf_final_log_reg, new_data = test_data) |> mn_log_loss(truth = default, .pred_Yes, event_level = "second")
+```
+
+```{r}
+predict(wf_final_log_reg, test_data, type = "prob")
+```
+
+
+
+```{r}
+wf_qda = wf_base |> add_model(discrim_quad())
+
+wf_final_qda = wf_qda |> fit(train_data)
+
+augment(wf_final_qda, new_data = test_data) |> mn_log_loss(truth = default, .pred_Yes, event_level = "second")
+
+```
+
+```{r}
+
+gam_spec <- gen_additive_mod(mode = "classification")
+
+wf_gam = wf_base |> add_model(gam_spec) |> add_formula(default~student+balance+s(income))
+
+wf_final_gam = wf_gam |> fit(data=train_data)
+
+augment(wf_final_gam, new_data = test_data) |> mn_log_loss(truth = default, .pred_Yes, event_level = "second")
+
+```
+
+## Exercise 3
+If we want to use kNN for probability estimation, we should make sure that the number of neighbors is large enough to get reasonable probability estimates. Use cross-validation data to select appropriate number of neighbors from 11,21,31 for predicting probability of default. Compute mean log loss on the test set.
+
+```{r}
+# Define a function to fit kNN and calculate log loss
+calculate_knn_loss <- function(neighbors) {
+  knn_spec <- nearest_neighbor(neighbors = neighbors) %>%
+    set_engine("kknn") %>%
+    set_mode("classification")
+  
+  wf_knn = wf_base |> add_model(knn_spec)
+
+  wf_final_knn = wf_knn |> fit(data=train_data)
+  
+  print(augment(wf_final_knn, new_data = test_data))
+
+  augment(wf_final_knn, new_data = test_data) |> mn_log_loss(truth = default, .pred_Yes, event_level = "second")
+}
+
+# Calculate losses for k = 11, 21, and 31
+knn_loss_11 <- calculate_knn_loss(11)
+knn_loss_21 <- calculate_knn_loss(21)
+knn_loss_31 <- calculate_knn_loss(31)
+
+# Output losses for comparison
+knn_loss_11
+knn_loss_21
+knn_loss_31
+
+```
+
+
+```{r}
+
+knn_spec <- nearest_neighbor(neighbors = tune()) %>%
+  set_engine("kknn") %>%
+  set_mode("classification")
+
+# 2. Define the workflow with the formula and the model specification
+knn_workflow <- workflow() %>%
+  add_model(knn_spec) %>%
+  add_formula(default ~ .)
+
+# 3. Define the grid of `neighbors` values
+neighbors_grid <- tibble(neighbors = c(11, 21, 31))
+
+# 4. Perform cross-validation tuning with `tune_grid()`
+#    Using `cv_folds` which we defined in Exercise 1
+
+knn_results <- tune_grid(
+  knn_workflow,
+  resamples = cv_folds,       # Cross-validation folds
+  grid = neighbors_grid,      # Grid of `neighbors` values to test
+  metrics = metric_set(mn_log_loss)  # Evaluate using mean log loss
+)
+
+# 5. View results and select the best number of neighbors based on log loss
+collect_metrics(knn_results)
+
+wf_final_knn = knn_workflow |> finalize_workflow(select_best(knn_results, metric="mn_log_loss")) |> fit(train_data)
+
+# not fair estimate because 0s and 1s are not properly dealt. Values should be replaced.
+
+augment(wf_final_knn, new_data = test_data) |> mn_log_loss(truth = default, .pred_Yes, event_level = "second")
+```
+
+
+## Exercise 4
+Produce plots of ROC curves for QDA and kNN based on performance on the comparison set. Compute data for ROC curve by using the test set with roc_curve() and use it to produce graph of ROC curve. Note that inside the the roc_curve() it is necessary to indicate, which level or the response is the positive result with event_level=“first/second” option; the resulting plot can be created with autoplot() command.
+
+```{r}
+qda_predictions <- augment(wf_final_qda, new_data = test_data)
+
+qda_roc_data <- qda_predictions |> roc_curve(
+  truth = default,          # True labels
+  .pred_Yes,  # Probabilities for the positive class "Yes"
+  event_level = "second"               # "second" because "Yes" is the positive class
+)
+
+# Plot ROC curve for QDA
+qda_roc_plot <- autoplot(qda_roc_data) +
+  ggtitle("ROC Curve for QDA")
+
+# Display QDA ROC plot
+qda_roc_plot
+```
+
+```{r}
+knn_predictions <- augment(wf_final_knn, new_data = test_data)
+
+knn_roc_data <- knn_predictions |> roc_curve(
+  truth = default,          # True labels
+  .pred_Yes,  # Probabilities for the positive class "Yes"
+  event_level = "second"               # "second" because "Yes" is the positive class
+)
+
+# Plot ROC curve for QDA
+#knn_roc_plot <- autoplot(knn_roc_data) +
+#  ggtitle("ROC Curve for QDA")
+
+# Display QDA ROC plot
+qda_roc_plot + geom_path(data=knn_roc_data, aes(x=1-specificity, y=sensitivity), color="red")
+```
+
+
+
+## Exercise 5
+Consider the case when predicting “No” for defaulting application costs 5 times more than predicting “Yes” for application which does not default. Which probability level should we use in Bayes classificator in this case? Compute the classification losses of the classifies constructed from previously fitted methods on the comparison data. Which point on a ROC curve of QDA method computed for training data corresponds to the optimal split?
+
+
+```{r}
+# Classification with adjusted threshold
+adjust_threshold <- function(probs, threshold) {
+  ifelse(probs >= threshold, "Yes", "No")
+}
+
+# Calculate adjusted predictions and losses for each model
+qda_adjusted_pred <- adjust_threshold(qda_pred$.pred_default, 0.167)
+knn_adjusted_pred <- adjust_threshold(knn_pred$.pred_default, 0.167)
+
+# Compute loss for each model
+qda_loss_adj <- classification_cost(truth = test_data$default, estimate = qda_adjusted_pred)
+knn_loss_adj <- classification_cost(truth = test_data$default, estimate = knn_adjusted_pred)
+
+qda_loss_adj
+knn_loss_adj
+
+```
+

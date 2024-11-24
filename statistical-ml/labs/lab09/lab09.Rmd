@@ -1,0 +1,219 @@
+---
+title: "Lab09"
+output: html_notebook
+---
+
+```{r}
+library(ISLR)
+library(tidymodels)
+library(tidyverse)
+library(rpart)
+library(MASS)
+```
+
+## Exercise 1
+
+Consider Auto dataset. Our aim is to predict mpg by horsepower by a regression tree. Use the full data set after removing the name variable as a training set. Use set.seed(20241031) just before fitting an regression tree model to mpg with respect to all other variables by using cp=0.000001 and minsplit=10. Look at the crossvalidation results. How many leafs this model has? How many leafs has the model with the best cp value? Which are 5 most important variables? Produce a graph of the part of the decision tree with first 15 splits.
+
+```{r}
+set.seed(20241031)
+
+model1 <- rpart::rpart(mpg ~ .-name, data = Auto, cp = 0.000001, minsplit = 10)
+
+```
+
+
+```{r}
+cp_min = as_tibble(model1$cptable) |> filter(xerror==min(xerror))|>slice(1)|>pull(CP)
+cp_min
+
+cp_15 = as_tibble(model1$cptable) |> filter(nsplit==14)|>slice(1)|>pull(CP)
+cp_15
+
+rpart.plot::rpart.plot(rpart::prune(model1, cp=cp_15))
+```
+
+```{r}
+model1$variable.importance
+```
+
+## Exercise 2
+
+Use tidymodels framework and parameter tuning to determine the best cp value for a decision tree model.
+
+```{r}
+rec2=recipe(mpg~., data=Auto) |> step_rm(name)
+
+tree_spec <- decision_tree(mode = "regression", cost_complexity = tune()) %>%
+  set_engine("rpart", xval=0)
+
+auto_folds <- vfold_cv(Auto, v = 10)
+
+tree_wf <- workflow() %>%
+  add_model(tree_spec) %>%
+  add_recipe(rec2)
+
+tune_grid = data.frame(cost_complexity=10^seq(-6,0,length.out=10))
+tree_res <- tune_grid(
+  tree_wf, 
+  resamples = auto_folds,
+  grid = tune_grid, 
+  metrics = metric_set(rmse)
+  )
+
+show_best(tree_res, metric="rmse")
+```
+```{r}
+wf2_fitted=tree_wf|>finalize_workflow(select_best(tree_res, metric="rmse"))|>fit(Auto)
+
+wf2_fitted|>extract_fit_engine()
+
+(wf2_fitted|>extract_fit_engine())$variable.importance
+```
+
+
+## Exercise 3
+
+Consider the problem of approximating the function which is 1 in the unit circle and 0 otherwise by a regression tree. Fit the regression tree by rpart::rpart() to the data in lab9.csv with default parameters, visualize the shape of the obtained model with ggplot2 package and command geom_raster(). For producing the graph, use expand_grid(x1=seq(-1,1,length.out=40),x2=seq(-1,1,length.out=40)) to make a set of values for which to obtain predictions.
+
+
+```{r}
+# Exercise 3
+# Load the data from lab9.csv
+lab9_data <- read.csv("lab9.csv")
+
+# Fit the regression tree with default parameters
+circle_tree <- rpart(y ~ x1 + x2, data = lab9_data, method="anova")
+
+# Prepare grid for visualization
+grid <- expand_grid(x1 = seq(-1, 1, length.out = 40), x2 = seq(-1, 1, length.out = 40))
+grid$pred <- predict(circle_tree, newdata = grid)
+
+# Plot using ggplot2
+ggplot(grid, aes(x = x1, y = x2, fill = pred)) +
+  geom_raster() +
+  scale_fill_viridis_c() +
+  labs(title = "Decision Tree Approximation of Unit Circle")
+
+```
+
+
+## Exercise 4.
+Consider Boston dataset from the MASS library (accessible through MASS::Boston). The aim is to predict medv (median value of owner occupied homes in 1000USD).
+
+use initial_split to divide the dataset to training and model comparison parts (proportion 0.7)
+Use the training set to determine the best decision tree and compute it’s rmse on the model comparison data
+Use the ideas from the previous lab to determine the best kNN method which uses all variables (use 5-fold crossvalidation on training data for selecting parameters). Compute it’s performance on the model comparison data
+Fit the best kNN method which uses 5 most important variables (from tree method) and compute it’s performance on the model comparison data
+Compare all models with each other
+
+```{r}
+# Exercise 4
+# Load Boston dataset
+data(Boston)
+
+# Split the data into training and test sets
+boston_split <- initial_split(Boston, prop = 0.7)
+boston_train <- training(boston_split)
+boston_test <- testing(boston_split)
+
+# 4.1 Determine best decision tree model
+boston_tree_spec <- decision_tree(mode = "regression", cost_complexity = tune()) %>%
+  set_engine("rpart")
+
+# Set up cross-validation
+boston_folds <- vfold_cv(boston_train, v = 5)
+
+# Create a workflow
+boston_tree_wf <- workflow() %>%
+  add_model(boston_tree_spec) %>%
+  add_formula(medv ~ .)
+
+# Perform parameter tuning for cp
+boston_tree_grid <- grid_regular(cost_complexity(), levels = 10)
+boston_tree_res <- tune_grid(boston_tree_wf, resamples = boston_folds, grid = boston_tree_grid, metrics = metric_set(rmse))
+
+# Get the best model based on RMSE
+best_boston_tree <- select_best(boston_tree_res, metric="rmse")
+cat("Best cp for Boston tree:", best_boston_tree$cost_complexity, "\n")
+
+# Finalize and fit the model with the best cp
+final_boston_tree <- finalize_workflow(boston_tree_wf, best_boston_tree)
+final_tree_model <- fit(final_boston_tree, data = boston_train)
+
+final_tree_model$variables.importance
+
+# Predict and compute RMSE on test data
+boston_tree_predictions <- predict(final_tree_model, new_data = boston_test) %>%
+  bind_cols(boston_test) %>%
+  metrics(truth = medv, estimate = .pred) %>%
+  filter(.metric == "rmse")
+cat("RMSE for best decision tree on test data:", boston_tree_predictions$.estimate, "\n")
+
+# 4.2 Tune kNN model using all variables
+knn_spec <- nearest_neighbor(mode = "regression", neighbors = tune()) %>%
+  set_engine("kknn")
+
+# Create workflow and tune kNN model
+knn_wf <- workflow() %>%
+  add_model(knn_spec) %>%
+  add_formula(medv ~ .)
+knn_grid <- grid_regular(neighbors(), levels = 10)
+knn_res <- tune_grid(knn_wf, resamples = boston_folds, grid = knn_grid, metrics = metric_set(rmse))
+
+# Get the best k for kNN
+best_knn <- select_best(knn_res, metric = "rmse")
+cat("Best k for kNN model:", best_knn$neighbors, "\n")
+
+# Finalize and fit best kNN model
+final_knn <- finalize_workflow(knn_wf, best_knn)
+final_knn_model <- fit(final_knn, data = boston_train)
+
+# Predict and compute RMSE on test data for kNN model
+knn_predictions <- predict(final_knn_model, new_data = boston_test) %>%
+  bind_cols(boston_test) %>%
+  metrics(truth = medv, estimate = .pred) %>%
+  filter(.metric == "rmse")
+cat("RMSE for best kNN on test data:", knn_predictions$.estimate, "\n")
+
+# 4.3 kNN using top 5 important variables from decision tree
+
+# Fit model directly with rpart
+direct_tree_model <- rpart(medv ~ ., data = boston_train, method = "anova", cp = best_boston_tree$cost_complexity)
+
+# Get variable importance
+important_vars <- direct_tree_model$variable.importance
+
+top5_vars <- names(sort(important_vars, decreasing = TRUE)[1:5])
+
+# Check the top 5 variables
+print(top5_vars)
+
+# Create the kNN workflow with only the top 5 important variables
+knn_wf_top5 <- workflow() %>%
+  add_model(knn_spec) %>%
+  add_formula(reformulate(top5_vars, response = "medv"))
+
+# Tune kNN with top 5 variables
+knn_res_top5 <- tune_grid(knn_wf_top5, resamples = boston_folds, grid = knn_grid, metrics = metric_set(rmse))
+
+# Get the best k for kNN with top 5 variables
+best_knn_top5 <- select_best(knn_res_top5, metric = "rmse")
+cat("Best k for kNN with top 5 variables:", best_knn_top5$neighbors, "\n")
+
+# Finalize and fit best kNN model with top 5 variables
+final_knn_top5 <- finalize_workflow(knn_wf_top5, best_knn_top5)
+final_knn_model_top5 <- fit(final_knn_top5, data = boston_train)
+
+# Predict and compute RMSE on test data for kNN with top 5 variables
+knn_predictions_top5 <- predict(final_knn_model_top5, new_data = boston_test) %>%
+  bind_cols(boston_test) %>%
+  metrics(truth = medv, estimate = .pred) %>%
+  filter(.metric == "rmse")
+cat("RMSE for kNN with top 5 variables on test data:", knn_predictions_top5$.estimate, "\n")
+```
+
+```{r}
+final_boston_model
+```
+

@@ -1,0 +1,158 @@
+---
+title: "Lab08"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(kknn)
+library(MASS)
+```
+
+## Exercise 1.
+
+Divide the data to training (model_fitting) and validation set (30% for validation) by mc_cv() command with times=1 and assign the result to a variable val_split. Extract model training data by using training(val_split$splits[[1]]) and validation data by testing(val_split$splits[[1]]).
+
+```{r}
+set.seed(20241024)
+```
+
+
+
+```{r}
+val_split <- mc_cv(MASS::Boston, prop = 0.7, times=1)
+
+model_train <- training(val_split$splits[[1]])
+validation <- testing(val_split$splits[[1]])
+```
+
+## Exercise 2
+
+Fit the best number of neighbors from 5,10,20,40 for the kNN method with lstat and rmas predictors by using tidymodels framework.
+
+```{r}
+
+knn_spec <- nearest_neighbor(mode="regression", neighbors = tune()) # weight_func = "rectangular"
+  # set_engine("kknn")
+
+# Create a recipe with normalization (standardization) of predictors lstat and rm
+knn_recipe <- recipe(medv ~ lstat+rm, data = model_train)
+  # step_normalize(all_predictors())
+
+# Create workflow combining model and recipe
+knn_workflow <- workflow() %>%
+  add_model(knn_spec) %>%
+  add_recipe(knn_recipe)
+
+# Define a grid for k (number of neighbors) to tune
+grid <- tibble(neighbors = c(5, 10, 20, 40))
+
+# Tune the workflow with cross-validation
+knn_tune_res <- tune_grid(
+  knn_workflow,
+  resamples = val_split,
+  grid = grid,
+  metrics = metric_set(rmse)
+)
+
+show_best(knn_tune_res)
+
+# Collect the results and select the best number of neighbors based on RMSE
+best_knn <- knn_tune_res %>%
+  select_best(metric = "rmse")
+
+best_knn
+
+```
+
+
+## Exercise 3
+
+Compare the result to the case when no normalization of variables is performed. For this, use kknn() with parameter scale=FALSE. RMSE measure can be computed with the function rmse()
+
+```{r}
+ex3 = function(k) {
+  # Fit kNN using lstat and rm without scaling
+  knn_unscaled <- kknn(medv ~ lstat + rm, train = model_train, test = validation, k = k, scale = FALSE)
+  # Predict and calculate RMSE for the unscaled kNN
+  # predictions_unscaled <- predict(knn_unscaled)
+  return(validation |>
+           mutate(pred = predict(knn_unscaled)) |>
+           rmse(truth = medv, estimate = pred))
+}
+
+rbind(ex3(5), ex3(10), ex3(20), ex3(40)) |> mutate(k = c(5, 10, 20, 40))
+```
+
+## Exercise 4
+
+Compare the results to the case both lstat and rm are range normalized (transform data with step_range())
+
+```{r}
+
+# Define a recipe for range normalization
+range_recipe <- recipe(medv ~ lstat + rm, data = model_train) |>
+  step_range(all_numeric_predictors())
+
+rec_4_prepared = range_recipe |> prep(model_train)
+
+model_train4 = rec_4_prepared |> bake(model_train)
+validation4 = rec_4_prepared |> bake(validation)
+
+ex4 = function(k) {
+  # Fit kNN using lstat and rm without scaling
+  knn_unscaled <- kknn(medv ~ lstat + rm, train = model_train4, test = validation4, k = k, scale = FALSE)
+  # Predict and calculate RMSE for the unscaled kNN
+  # predictions_unscaled <- predict(knn_unscaled)
+  return(validation4 |>
+           mutate(pred = predict(knn_unscaled)) |>
+           rmse(truth = medv, estimate = pred))
+}
+
+rbind(ex4(5), ex4(10), ex4(20), ex4(40)) |> mutate(k = c(5, 10, 20, 40))
+
+```
+
+## Exercise 5
+
+Compare the best model of Exercise 2 to the best kNN method (for the same list of k values) which uses all possible predictors for computing distances. Tune also for the combination of the k values and distances from 0.5,1,2. Which combination works best for the given validation set?
+
+```{r}
+knn_spec <- nearest_neighbor(mode="regression", neighbors = tune(), dist_power = tune()) # weight_func = "rectangular"
+
+
+# Create a recipe with normalization (standardization) of predictors lstat and rm
+knn_recipe <- recipe(medv ~ ., data = model_train)
+
+# Create workflow combining model and recipe
+knn_workflow <- workflow() %>%
+  add_model(knn_spec) %>%
+  add_recipe(knn_recipe)
+
+# Define a grid for k (number of neighbors) to tune
+# grid <- tibble(neighbors = c(5, 10, 20, 40))
+
+grid <- expand.grid(
+  neighbors = c(5, 10, 20, 40),    # Tune k values
+  dist_power = c(0.5, 1, 2)        # Tune distance power values
+)
+
+# Tune the workflow with cross-validation
+knn_tune_res <- tune_grid(
+  knn_workflow,
+  resamples = val_split,
+  grid = grid,
+  metrics = metric_set(rmse)
+)
+
+show_best(knn_tune_res, metric = "rmse")
+
+# Collect the results and select the best number of neighbors based on RMSE
+best_knn <- knn_tune_res %>%
+  select_best(metric = "rmse")
+
+best_knn
+```
+
+

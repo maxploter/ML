@@ -1,0 +1,96 @@
+---
+title: "Lab11"
+output: html_notebook
+---
+
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+library(GGally)
+library(discrim)
+```
+
+## Exercise 1
+Exercise 1. Let us use iris dataset for practicing classification with `glm()
+Look at pairwise plots of the first four columns of the dataset by using the column Species for indicating colors. Use the command ggpairs from the library GGally with mapping=aes(color=Species) and columns=1:4 parameters for producing the plots. Based on those plots, should we expect to get good classifiers based on the data?
+
+Form dataset iris_mod by adding variables Species_setosa,Species_virginica and Species_versicolor, which are 1 if observation is from corresponding species and 0 otherwise
+
+Fit a logistic regression model to the variable Species_virginica by using Petal.Length and Petal.Width for regressors.
+
+
+```{r}
+ggpairs(iris, aes(color=Species), columns = 1:4)
+```
+
+```{r}
+rec_dummies = recipe(~., data=iris)|> step_dummy(Species, one_hot=TRUE)
+iris_mod = rec_dummies|>prep()|>bake(new_data=iris)
+iris_mod
+```
+
+```{r}
+model1 <- glm(Species_virginica ~ Petal.Length + Petal.Width, data = iris_mod, family = binomial())
+tidy(model1)
+glance(model1)
+```
+
+
+## Exercise 2 
+Fitting logistic regression models with tidymodels framework.
+Fit a logistic regression model to the variable Species_virginica by using Petal.Length, Petal.Width, Sepal.Length, Sepal.Width for regressors by using tidymodels framework. For that, define a new data set iris_mod2, where Species_virginica is changed to a factor variable, use logistic_reg() to define model specification, a recipe indicating outcome and predictors and workflow involving both recipe and model specification. Can we consider this model better than the previous one?
+
+```{r}
+iris_mod2 = recipe(~., data=iris_mod) |> step_bin2factor(starts_with("Species"))|>prep()|>bake(new_data=NULL)
+iris_mod2
+```
+
+```{r}
+log_reg_spec <- logistic_reg() %>% 
+  set_engine("glm")
+
+# Recipe
+log_reg_recipe <- recipe(Species_virginica ~ Petal.Length + Petal.Width + Sepal.Length + Sepal.Width, data = iris_mod2)
+
+# Workflow
+log_reg_workflow <- workflow() %>%
+  add_model(log_reg_spec) %>%
+  add_recipe(log_reg_recipe)
+
+# Fit model
+log_reg_fit <- fit(log_reg_workflow, data = iris_mod2)
+glance(log_reg_fit)
+```
+
+```{r}
+iris_mod2_ <- augment(log_reg_fit, new_data = iris_mod2)
+
+iris_mod2
+
+ggplot(iris_mod2, aes(x = Species_virginica, y = .pred_yes)) + geom_boxplot()
+
+```
+
+
+
+```{r}
+augment(log_reg_fit, new_data=iris_mod2)|> conf_mat(truth=Species_virginica, estimate=.pred_class)
+```
+
+```{r}
+augment(log_reg_fit, new_data=iris_mod2)|>mutate(.pred_class=factor(if_else(.pred_yes>1/5,'yes', 'no'), levels=levels(.pred_class))) |> conf_mat(truth=Species_virginica, estimate=.pred_class)
+```
+
+```{r}
+
+```
+
+
+## Exercise 3
+We continue working with iris data set.
+Fit LDA model for Species in terms of Petal.Length and Petal.Width. How many prediction errors this method makes on training set?
+
+Fit LDA model by using all predictors. What is the number of classifying errors in this case?
+
+
