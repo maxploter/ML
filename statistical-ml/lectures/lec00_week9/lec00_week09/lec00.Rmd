@@ -1,0 +1,233 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+## Mathematical Statistics
+## Computer lab
+# Author: Kaur Lumiste
+
+# Introduction to R ----
+
+# Try the following calculations with R (can you understand what they do?):
+2*(3+4) 
+2**3 
+sqrt(16) 
+1-0.9999
+
+# Save a calculation step with the name “x” and use it in later calculations. 
+# Try running the following R commands:
+x = 2+3
+5*x
+x+1
+```
+```{r}
+# Exercise 1 ----
+# Do the calculations on the lab material
+(2+3)/(6+4)
+
+5.48*0.0365-0.2
+```
+
+
+```{r}
+
+
+
+# Data and working with data ----
+load(url("https://github.com/Rkursus/sygis2019/raw/master/data/students.RData"))
+
+# Some commands for data set summary information, try them:
+head(students)
+tail(students)
+summary(students)
+names(students)
+
+# Extract a single variable using the “$” sign after the data set name and then the name of the variable:
+students$height
+
+# Use the extracted variable in a calculation...
+mean(students$height)
+hist(students$height)
+
+# ...or plot the data
+plot(students$height, students$weight)
+
+
+# Skip repeating the “students$” part and tell R that we are using the data set "students". 
+# This is achieved with the attach(.) command
+attach(students)
+
+# Try now
+plot(height, weight)
+mean(height)
+median(height)
+table(health)
+prop.table(table(health))
+round(prop.table(table(health))*100,2)
+boxplot(height~gender)
+ftable(gender, beer, health)
+```
+
+```{r}
+# what is the difference between factor and nominal variable?
+
+str(health)
+str(students)
+```
+
+
+```{r}
+# Hypothesis testing -------
+
+# Why do we use a t-distr?
+
+## Hypothesis on population means -------
+
+# Simple one sample hypothesis testing of mean
+t.test( height[gender==2] , mu=173.83)
+
+# ... or the way we did it in the lab on paper.
+## Find the statistic value
+n = length((height[gender==2]))
+(t_stat = (mean(height[gender==2]) - 173.83) / sd(height[gender==2]) * sqrt(n))
+## Since the test statistic under the null-hypothesis is a t-distributed random variable, 
+##  then the critical value would be (with alpha = 0.05):
+(critical_value = qt(1-0.05/2, n-1)) # !!! complement 0.05/2-quantile of the t-distribution, see more by running the command "?qt"
+# What's your decision?
+
+# Calculate the p-value:
+(2*(1-pt(t_stat, n-1)))
+```
+```{r}
+
+## Hypothesis 2 on population means -------
+
+# Simple one sample hypothesis testing of mean
+t.test( height[gender==2] , mu=181)
+
+# ... or the way we did it in the lab on paper.
+## Find the statistic value
+n = length((height[gender==2]))
+(t_stat = (mean(height[gender==2]) - 181) / sd(height[gender==2]) * sqrt(n))
+## Since the test statistic under the null-hypothesis is a t-distributed random variable, 
+##  then the critical value would be (with alpha = 0.05):
+(critical_value = qt(1-0.05/2, n-1)) # !!! complement 0.05/2-quantile of the t-distribution, see more by running the command "?qt"
+# What's your decision?
+
+# Calculate the p-value:
+(2*(1-pt(t_stat, n-1)))
+```
+
+```{r}
+# Exercise 2 -----
+# Answer the following questions:
+## A. Can male students’ mean weight be 75kg?
+t.test( weight[gender==2] , mu=75) # p-value = 0.1217
+# cannot regect H0
+## B. Can male students’ mean weight be 76kg?
+t.test( weight[gender==2] , mu=76) # p-value = 0.6011
+
+## C. Are the results contradictive? Why?
+# no contradition as both val 75,76 are included into confidence interval
+```
+
+
+```{r}
+# Exercise 3 -----
+
+# sample mean hypthesis testing is true for any distribution
+
+# Is it possible that John has a fair die?
+die_result = c(1, 5, 6, 6, 3, 5, 6, 6, 4, 5, 3, 6)
+t.test( die_result , mu=3.5) # we need to reject H0
+```
+
+
+```{r}
+# H1 mu > 3.5
+
+# sample mean hypthesis testing is true for any distribution
+
+# Is it possible that John has a fair die?
+die_result = c(1, 5, 6, 6, 3, 5, 6, 6, 4, 5, 3, 6)
+t.test( die_result , mu=3.5, alternative = "greater") # we need to reject H0
+```
+
+
+```{r}
+# Testing two populations ----
+
+## Comparing means----
+
+# Mean weights of students who have had hospitalisation in the past 
+# (medical_care=1) and the ones who have not (medical_care=0)
+t.test(weight[medical_care==1], weight[medical_care==0])
+
+sd(weight[medical_care==1], na.rm=T)
+sd(weight[medical_care==0], na.rm=T)
+
+t.test(weight[medical_care==1], weight[medical_care==0], var.equal = TRUE)
+
+# Comparing probabilities ----
+table(ambulance, health=="very good")
+prop.test(c(52, 13), c(52+355, 13+60))
+```
+
+
+```{r}
+# Linear regression -------
+
+
+# Model on blood pressure and height
+model1 = lm( SVR ~ height )
+summary(model1) 
+
+
+# Correlations ----
+cor(data.frame(weight, height, SVR, DVR), 
+    use="pairwise.complete.obs")
+
+cor(data.frame(weight, height, SVR, DVR), use="complete.obs")
+
+# Visualising correlations
+install.packages("corrplot") # Run once
+library("corrplot")
+
+correlations=cor(data.frame(weight, height, SVR, DVR), 
+                 use="pairwise.complete.obs")
+
+corrplot(correlations)
+corrplot(correlations, method="square")
+corrplot(correlations, method="ellipse")
+corrplot(correlations, method="number")
+corrplot.mixed(correlations)
+
+## Other useful things
+
+### 1) Finding normal distribution quantiles
+# 0.975 quantile or 0.025-complementary quantile to calculate 2-sided confidence interval
+qnorm(0.975)
+
+### 2) Finding normal probabilites
+# Some research says the male IQ distribuion is approximately normal with mean 100 and sigma 16.2
+# What is the probability that a randomly selected person has IQ larger than 130?
+# P(X<= 130):
+pnorm(130, mean = 100, sd = 16.2)
+# P(X> 130):
+1 - pnorm(130, mean = 100, sd = 16.2)
+
+### 3) Finding exponential distribution probabilities
+#Let X be a waiting time in minutes till the first e-mail. Server
+#receives e-mails in average in every 15 seconds (in  4 minute),
+#eg λ = 4 per minute. What is the probability that the server will not receive any
+#e-mails within 30 seconds (0.5 min)
+# Find P( X >= 0.5) ?
+#using exponential distribution formula
+1 - (1 - exp(-4*0.5))
+# Using exponential distribution probability distribution function
+1 - pexp(0.5, 4) #rate is lambda, x is the probability cutoff
+# The same as 
+
+```
