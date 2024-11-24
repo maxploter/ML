@@ -1,0 +1,191 @@
+---
+title: "HW05_ploter"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(leaps)
+library(rpart)
+library(rpart.plot)
+```
+
+```{r}
+set.seed(39692)
+```
+
+## Problem 1
+1) Divide the data into training and model comparison parts (25% for model comparison).
+
+```{r}
+df = read_delim("hw5_C39692.csv", delim = ",")
+
+splitted=initial_split(df,prop=0.75)
+train_df=training(splitted)
+test_df=testing(splitted)
+head(test_df)
+```
+
+2) Use the training data to find the best Decision Tree model.
+
+```{r}
+rec1=recipe(y~.,data=train_df)
+tree_spec=decision_tree(mode="regression",cost_complexity=tune(),min_n=5)|>set_engine("rpart",xval=0)
+wf2=workflow()|>add_recipe(rec1)|>add_model(tree_spec)
+cvdata=vfold_cv(train_df,v=5)
+grid=data.frame(cost_complexity=10^seq(-6,0,length.out=11))
+tune_result=wf2|>tune_grid(cvdata,grid=grid,metrics=metric_set(rmse))
+show_best(tune_result)
+```
+
+
+```{r}
+mod1=rpart::rpart(y~.,data=train_df, cp=select_best(tune_result, metric="rmse")$cost_complexity,minsplit=10,method="anova")
+
+cp_8=as_tibble(mod1$cptable) |> filter(nsplit==8)|>pull(CP)
+mod1$variable.importance
+```
+
+
+
+3) Produce a graph of the 8 most important splits of the best model
+
+
+```{r}
+rpart.plot::rpart.plot(rpart::prune(mod1,cp=cp_8),digits=3)
+```
+```{r}
+print(rpart::prune(mod1, cp = cp_8))
+```
+
+
+4) Explain by the graph, which decisions are made to and which is the final prediction (based on the graph
+shown in the previous step) for observation corresponding to the row number 692 (the last three digits in your study book number) in the original data set.
+
+```{r}
+row_692 = df[692, ]
+print(row_692)
+```
+
+To explain the decisions made by the decision tree model for row 692, we’ll trace through the tree based on the values in row_692:
+
+Node 1 (root) starting from the root node:
+
+The root node checks if X8 < 4.97.
+For row 692, X8 = 1.069961, which is less than 4.97, so we go to the left subtree (Node 2).
+
+Node 2:
+This node checks if X5 < 7.15.
+For row 692, X5 = 10.22865, which is greater than 7.15, so we proceed to the right subtree of this node (Node 5).
+
+Node 5:
+This node checks if X7 < 2.02.
+For row 692, X7 = 4.730494, which is greater than 2.02, so we go to the right subtree of this node (Node 11).
+
+Node 11 (Terminal Node):
+We reached the leaf, so the predicted value is 4.51.
+
+```{r}
+predicted_value = predict(rpart::prune(mod1,cp=cp_8), row_692)
+
+actual_value = row_692$y
+
+cat("Predicted value:", predicted_value, "\n")
+```
+
+
+5) Compute the performance (rmse) of the best model on the comparison part.
+
+```{r}
+test_df|>mutate(.pred=predict(mod1,test_df))|>rmse(truth=y,estimate=.pred)
+```
+
+## Problem 2
+1) Use the training data to find the best kNN model for predicting y by considering models with different
+number of predictors. Take into account the variable importance information from the best tree model
+to select predictors for the models you try, tune also with respect to the number of neighbors and with
+respect to the power of the distance metric.
+
+ X8         X5        X19         X1         X3         X7         X2         X6        X11         X9        X10 
+85721.4490 57817.8329 55810.8159 53771.9689 45963.9292 31929.0868 21583.9712 21094.8735 19274.1639 13174.7422  8828.9545 
+       X14        X17        X18        X13         X4        X16        X12    country 
+ 5884.8183  5623.6233  5577.3957  5042.4522  4449.4950  2816.6147  1894.0486   559.3667 
+
+
+```{r}
+# Recipe 1: Top 3 predictors
+rec_knn_1 = recipe(y ~ X8 + X5 + X19, data = train_df)
+
+# Recipe 2: Top 5 predictors
+rec_knn_2 = recipe(y ~ X8 + X5 + X19 + X1 + X3, data = train_df)
+
+# Recipe 3: Top 7 predictors
+rec_knn_3 = recipe(y ~ X8 + X5 + X19 + X1 + X3 + X7 + X2, data = train_df)
+
+# Recipe 4: Top 9 predictors
+rec_knn_4 = recipe(y ~ X8 + X5 + X19 + X1 + X3 + X7 + X2 + X6 + X11, data = train_df)
+
+recipes_list = list(rec_knn_1, rec_knn_2, rec_knn_3, rec_knn_4)
+
+tuning_grid=expand_grid(neighbors=c(5,10,20,40),dist_power=c(0.5,1,2))
+
+knn_spec = nearest_neighbor(
+  mode = "regression",
+  neighbors = tune(),
+  dist_power = tune()
+) |>
+  set_engine("kknn")
+
+results = lapply(recipes_list, function(rec) {
+  wf = workflow() |>
+    add_recipe(rec) |>
+    add_model(knn_spec)
+  
+  wf |>
+    tune_grid(
+      resamples = cvdata,
+      grid = tuning_grid,
+      metrics = metric_set(rmse)
+    )
+})
+
+best_results = lapply(results, show_best, metric="rmse")
+best_results
+```
+
+2) Compute the performance of your best model for the comparison data. Which model (from the Decision
+Tree model and kNN model) would you choose for predicting new data and why?
+
+
+
+```{r}
+wf_knn = workflow() |>
+  add_recipe(rec_knn_3) |>
+  add_model(knn_spec)
+
+cv_results_knn =   wf_knn |>
+    tune_grid(
+      resamples = cvdata,
+      grid = tuning_grid,
+      metrics = metric_set(rmse)
+    )
+
+best_knn = cv_results_knn |>
+  select_best(metric="rmse")
+
+final_knn = finalize_workflow(wf_knn, best_knn)
+
+fitted_knn = fit(final_knn, data = train_df)
+
+test_df = test_df |>
+  mutate(.pred = predict(fitted_knn, test_df) |> pull(.pred))
+
+knn_rmse = rmse(test_df, truth = y, estimate = .pred)
+knn_rmse
+```
+
+The kNN model has a lower RMSE (4.1044) than the Decision Tree model (5.11721). If predictive accuracy is the primary requirement, then we should choose the kNN model.
+
+However, if results interpretability is also a requirement, we should not rule out the Decision Tree model.
+

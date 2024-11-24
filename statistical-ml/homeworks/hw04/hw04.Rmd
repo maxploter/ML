@@ -1,0 +1,283 @@
+---
+title: "HW04_ploter"
+output: html_notebook
+---
+
+# Description
+
+### Data Preprocessing
+
+First, I transformed the nominal columns into dummy variables.
+
+### Classical Approach with Stepwise Selection
+
+I applied a stepwise selection method in both directions (using AIC as the criterion) to identify significant predictors. This process highlighted the following predictors: X9, X2, X1, X14, X6 and X7.
+
+I plotted residuals against each predictor and observed non-linear dependencies for predictors X1, X2, and X9.
+
+### Lasso Regularization
+
+To further explore predictor selection, I also tried Lasso regularization, which identified a slightly different set of predictors: X1, X2, X6, X8, X9, and color_green.
+
+Both the classical approach and Lasso regularization showed overlap in selected predictors, particularly X1, X2, X9, and X6.
+
+### Baseline Model
+
+I set up a naive baseline using a linear model with predictors selected from both the classical approach and Lasso regularization. The baseline model achieved RMSE values of 4.304524 and 4.308791, which were quite similar.
+
+### GAM Model
+
+To capture the non-linear relationships in the data, I fitted a Generalized Additive Model (GAM) with the following specifications:
+
+Linear splines with respect to predictor X1 using 7 knots placed at equal quantiles.
+Natural splines for predictor X2 with 6 degrees of freedom.
+Smoothing splines for predictor X9.
+And linear terms with respect to X14, X6 and X7.
+
+After fitting the GAM, I again plotted residuals against the predictors and observed that X2 and X9 still exhibited some non-linear patterns.
+
+### Cross-Validation
+
+Finally, I performed 10-fold cross-validation to evaluate the model and identify the best-performing configuration.
+
+
+# Code
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(leaps)
+library(GGally)
+library(splines)
+library(broom)
+```
+
+
+```{r}
+set.seed(39692)
+
+df <- read_delim("hw4_train.csv", delim = ",")
+```
+
+```{r}
+summary(df)
+```
+
+# Feature selection
+
+## Classical approach: Automatic selection of predictors for linear models
+
+```{r}
+rec = recipe(y~.,data=df)|>step_dummy(all_nominal_predictors())
+
+df_baked = rec |> prep(df) |> bake(new_data=NULL)
+
+head(df_baked)
+```
+
+
+```{r}
+null_model <- lm(y ~ 1, data = df_baked)
+
+full_model <- lm(y ~ ., data = df_baked)
+
+stepwise_model <- stats::step(null_model, 
+                       scope = list(lower = null_model, upper = full_model), 
+                       direction = "both", 
+                       trace=0,
+                       #k = log(nrow(df_baked))
+                       )  #k = log(n) is sometimes referred to as BIC or SBC.
+
+summary(stepwise_model)
+```
+
+
+```{r}
+qqnorm(residuals(stepwise_model), main="QQ-Plot of Residuals")
+qqline(residuals(stepwise_model), col="red")
+
+# ggplot2 option for a more refined plot
+
+ggplot(data = data.frame(residuals = residuals(stepwise_model)), aes(sample = residuals)) +
+  stat_qq() +
+  stat_qq_line(color = "red") +
+  ggtitle("QQ-Plot of Residuals") +
+  theme_minimal()
+```
+
+```{r}
+
+plot_residuals_fn = function(m) {
+  selected_vars <- all.vars(formula(m))[-1]
+
+  continuous_vars <- selected_vars[sapply(df_baked[selected_vars], is.numeric)]
+  
+  for (var in continuous_vars) {
+    p <- ggplot(m) + geom_point(aes_string(x = var, y = ".resid")) +
+      geom_smooth(aes_string(x = var, y = ".resid"), method = 'loess', color = 'blue') +
+      labs(title = paste("Residuals vs", var), x = var, y = "Residuals")
+    print(p)
+  }
+}
+
+plot_residuals_fn(stepwise_model)
+
+```
+
+## Regulirization -- Lasso
+
+```{r}
+cv_data=vfold_cv(df_baked, v=10)
+
+rec_reg_1 = recipe(y~.,data=df_baked)
+
+wf_reg_1=workflow()|> add_model(linear_reg(penalty=tune(),mixture=1)|>set_engine("glmnet"))|>add_recipe(rec_reg_1)
+res_reg_1=tune_grid(wf_reg_1,cv_data,grid=data.frame(penalty=seq(0.02,0.2,by=0.02)))
+show_best(res_reg_1)
+```
+
+```{r}
+wf_reg_1_final = finalize_workflow(wf_reg_1, select_best(res_reg_1, metric = "rmse"))
+
+wf_reg_1_final = wf_reg_1_final|>fit(df_baked)
+wf_reg_1_final
+```
+
+
+```{r}
+wf_reg_1_select <- workflow()|>add_recipe(rec_reg_1)|>add_model(linear_reg(engine="glmnet",mixture=1,penalty=0.08))
+wf_reg_1_select_fitted = fit(wf_reg_1_select, df_baked)
+selected_vars = tidy(wf_reg_1_select_fitted)|>filter(estimate!=0)|>slice(-1)|>pull(term)
+selected_vars
+```
+
+
+
+# Model comparison
+
+
+
+```{r}
+set.seed(20240926)
+splitted=initial_split(df_baked,prop=0.8)
+train_df=training(splitted)
+test_df=testing(splitted)
+
+cv_data=vfold_cv(train_df, v=10)
+```
+
+
+
+## Baseline - naive
+
+
+```{r}
+wf_baseline_1 = workflow()|>
+  add_recipe(recipe(y ~ X1 + X2 + X9 + X14 + X6 + X7, data=train_df))|>
+  add_model(linear_reg())
+res_baseline_1=fit_resamples(wf_baseline_1, cv_data,metrics = metric_set(rmse))
+collect_metrics(res_baseline_1)
+```
+
+```{r}
+last_fit_result=last_fit(wf_baseline_1,splitted)
+last_fit_result|>collect_metrics()
+```
+
+
+Try to fit model based on predictiors from Lasso reg.
+
+```{r}
+head(df_baked)
+```
+
+
+```{r}
+# "X1"          "X2"          "X6"          "X8"          "X9"          "color_green"
+wf_baseline_2 = workflow()|>
+  add_recipe(recipe(y ~ X1 + X2 + X9  + X6 + X8 + color_green, data=train_df))|>
+  add_model(linear_reg())
+res_baseline_2=fit_resamples(wf_baseline_2, cv_data,metrics = metric_set(rmse))
+collect_metrics(res_baseline_2)
+```
+
+```{r}
+last_fit_result=last_fit(wf_baseline_2,splitted)
+last_fit_result|>collect_metrics()
+```
+
+
+## GAM
+
+```{r}
+# quantile(df_baked$X1, probs = seq(0.1, 0.9, length.out = 5))
+m_gam = gen_additive_mod(mode="regression") |> fit(
+  y ~ splines::bs(X1, knots = c(1.776703,  3.097543,  4.128191,  5.065609,  6.022864,  7.034800,  8.375370)) + splines::ns(X2, df = 6) + s(X9) + X7 + X6 + X14,
+  data=df_baked
+  )
+#add predictions to data and compute correct residuals
+m_gam_aug=augment(m_gam, new_data=df_baked)
+```
+
+```{r}
+quantile(df_baked$X1, probs = seq(0.1, 0.9, length.out = 7))
+```
+
+
+
+```{r}
+ggplot(m_gam_aug, aes(x=X1))+geom_point(aes(y=.resid))+geom_smooth(aes(y=.resid))
+```
+```{r}
+ggplot(m_gam_aug, aes(x=X2))+geom_point(aes(y=.resid))+geom_smooth(aes(y=.resid))
+```
+```{r}
+ggplot(m_gam_aug, aes(x=X9))+geom_point(aes(y=.resid))+geom_smooth(aes(y=.resid))
+```
+
+```{r}
+ggplot(m_gam_aug, aes(x=X14))+geom_point(aes(y=.resid))+geom_smooth(aes(y=.resid))
+```
+```{r}
+ggplot(m_gam_aug, aes(x=X6))+geom_point(aes(y=.resid))+geom_smooth(aes(y=.resid))
+```
+
+
+
+```{r}
+ggplot(m_gam_aug, aes(x=X7))+geom_point(aes(y=.resid))+geom_smooth(aes(y=.resid))
+```
+
+```{r}
+wf_gam_1 = workflow()|>
+  add_recipe(recipe(y~.,data=train_df))|>
+  add_model(
+    gen_additive_mod(mode="regression"),
+    formula=y ~ splines::bs(X1, knots = c(1.776703,  3.097543,  4.128191,  5.065609,  6.022864,  7.034800,  8.375370)) + splines::ns(X2, df = 6) + s(X9) + X7 + X6 + X14
+    )
+res_gam_1=fit_resamples(wf_gam_1, cv_data,metrics = metric_set(rmse))
+collect_metrics(res_gam_1)
+```
+
+
+```{r}
+wf_gam_1_result=last_fit(wf_gam_1,splitted)
+wf_gam_1_result|>collect_metrics()
+```
+
+```{r}
+wf_gam_2 = workflow()|>
+  add_recipe(recipe(y~.,data=train_df))|>
+  add_model(
+    gen_additive_mod(mode="regression"),
+    formula=y ~ splines::bs(X1, knots = c(1.776703,  3.097543,  4.128191,  5.065609,  6.022864,  7.034800,  8.375370)) + splines::ns(X2, df = 6) + s(X3) + X7 + X6 + X14
+    )
+res_gam_2=fit_resamples(wf_gam_2, cv_data,metrics = metric_set(rmse))
+collect_metrics(res_gam_2)
+```
+
+```{r}
+wf_gam_2_result=last_fit(wf_gam_2,splitted)
+wf_gam_2_result|>collect_metrics()
+```
+
