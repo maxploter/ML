@@ -1,0 +1,178 @@
+---
+title: "L13"
+output: html_notebook
+---
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+library(kernlab)
+```
+
+## Exercise 1
+Use set.seed(20241128) to fix randomness. After that, form a 5-fold cross-validation data set (considering the full data set as training data). Then find the cross-validation accuracy of Random Forest method (used with default parameters) for predicting the class of AHD
+
+```{r}
+set.seed(20241128)
+df = read_delim('Heart.csv', delim=',', col_select=-1)
+
+cv_folds <- vfold_cv(df, v = 5)
+```
+
+```{r}
+summary(df)
+```
+
+```{r}
+table(df$Thal, useNA='always')
+```
+
+Filling missing values with means is dangerous practice because it may destroy some relations.
+
+```{r}
+rec1 = recipe(AHD~., data=df) |> step_impute_mean(Ca) |> step_impute_mode(Thal)
+
+wf1=workflow() |> add_recipe(rec1) |> 
+  add_model(rand_forest(mode="classification"))
+
+cv_results_rf <- wf1 |> fit_resamples(cv_folds)
+
+collect_metrics(cv_results_rf)
+```
+
+
+## Exercise 2
+Add a variable setose with values Yes and No (according to the value of the Species variable) to iris dataset, name the modified dataset to ex1_data. Use tidymodels framework to fit SVM models to setosa using Sepal.Length and Petal.Length as predictors, using cost values 0.1,1,10 and produce corresponding classification plots with kernlab::plot(extract_fit_engine(model),data=ex1_data) command. What can you say about how cost parameter influences the number of support vectors?
+
+```{r}
+iris_mod=iris |> mutate(y=if_else(Species=='setosa', 'Yes', 'No'))
+
+rec2 = recipe(y ~ Petal.Length+Sepal.Length, data=iris_mod)
+
+wf2 = workflow() |> add_recipe(rec2) |> add_model(svm_linear(mode="classification", engine="kernlab", cost=0.1))
+
+wf2_fitted = wf2 |> fit(iris_mod)
+
+kernlab::plot(extract_fit_engine(wf2_fitted),data=iris_mod)
+```
+
+## Exercise 3
+Use tuning to find the best linear support vector classifier for AHD in the case of Heart data both for unscaled and scaled predictors by using kernlab engine. Fit the best model to the full Heart data set and produce a graph with respect to variables Chol and MaxHR, which shows observations, actual value of AHD by shape and predicted value of AHD by color.
+
+```{r}
+
+# Create two recipes: one with scaling, one without
+rec_unscaled <- rec1
+rec_scaled <- rec1
+
+# Define the SVM model with tunable cost
+svm_model_scaled <- svm_linear(
+  mode = "classification",
+  engine = "kernlab",
+  cost = tune(),
+
+)
+
+svm_model_unscaled <- svm_linear(
+  mode = "classification",
+  cost = tune(),
+) |> set_engine("kernlab", scaled=FALSE)
+
+# Set up workflows for unscaled and scaled predictors
+wf_unscaled <- workflow() |> 
+  add_recipe(rec_unscaled) |> 
+  add_model(svm_model_unscaled)
+
+wf_scaled <- workflow() |> 
+  add_recipe(rec_scaled) |> 
+  add_model(svm_model_scaled)
+
+cost_grid <- data.frame(cost=10^seq(-3,3, length.out=5))
+
+tuned_unscaled <- tune_grid(
+  wf_unscaled,
+  resamples = cv_folds,
+  grid = cost_grid,
+  metrics = metric_set(accuracy)
+)
+
+# Tune the model for scaled predictors
+tuned_scaled <- tune_grid(
+  wf_scaled,
+  resamples = cv_folds,
+  grid = cost_grid,
+  metrics = metric_set(accuracy)
+)
+
+# Select the best hyperparameters for each case
+show_best(tuned_unscaled, metric="accuracy")
+best_unscaled <- select_best(tuned_unscaled, metric="accuracy")
+
+show_best(tuned_scaled, metric="accuracy")
+best_scaled <- select_best(tuned_scaled, metric="accuracy")
+
+# Fit the best models to the full dataset
+final_model_unscaled <- finalize_workflow(wf_unscaled, best_unscaled) |> fit(df)
+final_model_scaled <- finalize_workflow(wf_scaled, best_scaled) |> fit(df)
+
+```
+
+```{r}
+ggplot(df_predictions, aes(x = Chol, y = MaxHR)) +
+  geom_point(aes(shape = AHD, color = Predicted_AHD), size = 3) +
+  scale_color_manual(values = c("Yes" = "blue", "No" = "red")) +
+  labs(
+    title = "SVM Predictions for AHD",
+    x = "Cholesterol",
+    y = "Maximum Heart Rate",
+    color = "Predicted AHD",
+    shape = "Actual AHD"
+  ) +
+  theme_minimal()
+```
+
+## Exercise 4
+Divide the Heart dataset to training (70%) and validation sets by stratifying with respect ot AHD. Find the best linear linear SVM classifier for AHD in terms of Chol and MaxHR and produce plots about it’s performance on the training and validation sets.
+
+```{r}
+
+splitted = mc_cv(df, prop=0.7, strata=AHD, times=1)
+train = training(splitted$splits[[1]])
+validation = testing(splitted$splits[[1]])
+
+```
+
+```{r}
+
+rec4 = recipe(AHD~Chol+MaxHR, data=train)
+# Define the SVM model with tunable cost
+svm_model_scaled <- svm_linear(
+  mode = "classification",
+  engine = "kernlab",
+  cost = tune(),
+)
+
+wf4 <- workflow() |> 
+  add_recipe(rec4) |> 
+  add_model(svm_model_scaled)
+
+cost_grid <- data.frame(cost=10^seq(-3,3, length.out=10))
+
+tuned_4 <- tune_grid(
+  wf4,
+  resamples = splitted,
+  grid = cost_grid,
+  metrics = metric_set(accuracy)
+)
+
+show_best(tuned_4, metric="accuracy")
+
+m4 = wf4 |> finalize_workflow(select_best(tuned_4)) |> fit(train)
+
+plot(extract_fit_engine(m4), data=train)
+```
+
+
+## Exercise 5
+Consider the same classification problem as in Exercise 4. Find by cross-validation the best cost parameter (allowing ksvm to choose itself kernel scale and offset) in the case polynomial kernel with degree 2. What is the best value of accuracy on the validation set? Produce plots about the best model’s performance on the training and validation sets. What scale and offset were used? Look at what happens when scale is changed (try values 0.1 and 10)
+
