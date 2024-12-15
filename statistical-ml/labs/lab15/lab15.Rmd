@@ -1,0 +1,300 @@
+---
+title: "Lab15"
+output: html_notebook
+---
+
+```{r}
+library(dplyr)
+library(ggfortify)
+library(tidyverse)
+library(factoextra)
+library(cluster)
+library(mclust)
+```
+
+## Exercise 1 (k-means clustering)
+Consider data set lab15.
+
+```{r}
+lab15 = read_delim("lab15.csv", delim = ",")
+```
+
+Use k-means clustering with 2 clusters (with other parameters having default values) to cluster the data. 
+
+```{r}
+set.seed(20241212)
+
+ex1.1 = kmeans(lab15, 2)
+
+ex1.1
+```
+
+
+Produce corresponding graph with factoextra::fviz_cluster(). 
+
+```{r}
+factoextra::fviz_cluster(ex1.1, lab15)
+```
+
+
+What is the value of the objective function (in the component tot.withinss)
+```{r}
+ex1.1$tot.withinss
+```
+
+Repeat the previous step until you find a different clustering of data. Visualize it. Which of the two clustering results is better?
+
+```{r}
+# Repeat clustering to find a different clustering
+kmeans_2_diff <- kmeans(lab15, centers = 2, nstart = 20)
+
+# Visualize the new clustering
+fviz_cluster(kmeans_2_diff, data = lab15)
+```
+
+
+```{r}
+# Compare objective function values
+kmeans_2_diff$tot.withinss
+```
+
+
+Find the values of tot.withinss for 2,3,…,10 clusters (using nstart=20 to find a good clustering). Use elbow method to find a good candidate for the total number of clusters to use. 
+
+
+
+```{r}
+# Compute tot.withinss for k = 2 to 10
+tot_withinss <- map_dbl(2:10, function(k) {
+  kmeans(lab15, centers = k, nstart = 20)$tot.withinss
+})
+
+# Elbow plot
+plot(2:10, tot_withinss, type = "b", pch = 19, col = "blue", 
+     xlab = "Number of Clusters", ylab = "Total Within-cluster Sum of Squares")
+
+```
+
+
+Visualize the results for the best number of clusters.
+
+```{r}
+# Repeat clustering to find a different clustering
+kmeans_4_diff <- kmeans(lab15, centers = 4, nstart = 20)
+
+# Visualize the new clustering
+fviz_cluster(kmeans_4_diff, data = lab15)
+```
+
+```{r}
+kmeans_4_diff$tot.withinss
+```
+
+
+Compute average silhouette values for 2,…,10 clusters and produce plot of average silhouette values. Which number of clusters gives the maximal value?
+
+```{r}
+silhouette_avg <- map_dbl(2:10, function(k) {
+  km <- kmeans(lab15, centers = k, nstart = 20)
+  sil <- silhouette(km$cluster, dist(lab15))
+  mean(sil[, 3])
+})
+
+# Plot silhouette values
+plot(2:10, silhouette_avg, type = "b", pch = 19, col = "red", 
+     xlab = "Number of Clusters", ylab = "Average Silhouette Width")
+
+```
+
+
+Consider data set USArrests.
+Find the best clustering (based on elbow method) for the dataset without scaling variables. 
+
+```{r}
+# K-means clustering (elbow method)
+tot_withinss_usa <- map_dbl(2:10, function(k) {
+  kmeans(USArrests, centers = k, nstart = 20)$tot.withinss
+})
+plot(2:10, tot_withinss_usa, type = "b", pch = 19, col = "blue",
+     xlab = "Number of Clusters", ylab = "Total Within-cluster Sum of Squares")
+```
+
+
+
+
+Visualize the results with respect to Murder and Assault variables.
+
+```{r}
+# Visualization with respect to Murder and Assault
+best_k <- 3
+km_usarrests <- kmeans(USArrests, centers = best_k, nstart = 20)
+fviz_cluster(km_usarrests, data = USArrests, choose.vars = c("Murder", "Assault"))
+```
+
+
+Find the best clustering for the scaled data set. Which clusters would you consider to be more meaningful?
+
+```{r}
+# Scale data
+usarrests_scaled <- scale(USArrests)
+
+# K-means clustering on scaled data
+tot_withinss_scaled <- map_dbl(2:10, function(k) {
+  kmeans(usarrests_scaled, centers = k, nstart = 20)$tot.withinss
+})
+plot(2:10, tot_withinss_scaled, type = "b", pch = 19, col = "blue",
+     xlab = "Number of Clusters", ylab = "Total Within-cluster Sum of Squares")
+
+```
+
+
+```{r}
+# Best clustering
+best_k_scaled <- 4
+km_scaled <- kmeans(usarrests_scaled, centers = best_k_scaled, nstart = 20)
+fviz_cluster(km_scaled, data = usarrests_scaled)
+```
+
+
+Hierarchical clustering
+In the case of Hierarchical clustering we get sequence of nested clusters and we have to decide, how many clusters to use. For deciding which number of clusters to use, we can look at dendogram (at which height there is the largest gap with no additional clusters appearing) or to use some measure like silhouette for choosing a good number of clusters.The result depends heavily on the dissimilarity measure used.
+
+## Exercise 2 (hierarcical clustering)
+
+Consider data set lab15. Let us use the Euclidean distance (which can be computed by dist() function) for the dissimilarity measure.
+
+Apply hierarchical clustering to the data set with complete linkage and look at the dendrogram. Can you spot a good number of clusters from it?
+
+```{r}
+# Compute distance matrix and perform clustering
+dist_lab15 <- dist(lab15)
+hclust_complete <- hclust(dist_lab15, method = "complete")
+
+# Plot dendrogram
+plot(hclust_complete, labels = FALSE, main = "Complete Linkage Dendrogram")
+rect.hclust(hclust_complete, k = 3, border = "red")
+
+```
+
+
+Visualize the resulting clusters.
+
+```{r}
+clusters_hc <- cutree(hclust_complete, k = 3)
+fviz_cluster(list(data = lab15, cluster = clusters_hc))
+```
+
+
+Compute average silhouettes for cluster sizes 2,3,…,10. Which number of clusters gives the highest value?
+
+```{r}
+silhouette_avg_hc <- map_dbl(2:10, function(k) {
+  clusters <- cutree(hclust_complete, k = k)
+  sil <- silhouette(clusters, dist_lab15)
+  mean(sil[, 3])
+})
+
+```
+
+
+Visualize the resulting clusters for the chosen number of clusters.
+
+```{r}
+# Plot silhouette values
+plot(2:10, silhouette_avg_hc, type = "b", pch = 19, col = "red",
+     xlab = "Number of Clusters", ylab = "Average Silhouette Width")
+
+```
+
+```{r}
+best_k_hc <- 4
+clusters_hc <- cutree(hclust_complete, k = best_k_hc)
+fviz_cluster(list(data = lab15, cluster = clusters_hc))
+
+```
+
+
+## Exercise 3 (effect of metric in hierarchical clustering)
+Consider the data set ISLR::NCI60. Let us use hierarchical clustering with average linkage.
+
+Find the best number of clusters for the data based on average silhouette when scaled data and Euclidean distance is used. Use table(cancer_types,assigned_clusters) to see if some cancer types correspond well to the discovered clusters.
+
+```{r}
+
+nci_scaled <- scale(ISLR::NCI60$data)
+
+# Perform hierarchical clustering
+dist_nci <- dist(nci_scaled)
+hc_avg <- hclust(dist_nci, method = "average")
+
+# Silhouette method
+silhouette_avg_nci <- map_dbl(2:10, function(k) {
+  clusters <- cutree(hc_avg, k = k)
+  sil <- silhouette(clusters, dist_nci)
+  mean(sil[, 3])
+})
+plot(2:10, silhouette_avg_nci, type = "b", pch = 19, col = "red",
+     xlab = "Number of Clusters", ylab = "Average Silhouette Width")
+
+```
+
+```{r}
+best_k_hc <- 2
+clusters_hc <- cutree(hc_avg, k = best_k_hc)
+fviz_cluster(list(data = nci_scaled, cluster = clusters_hc))
+```
+
+
+Repeat the previous step in the case of correlation based dissimilarity matrix (defined by as.dist(1-cor(t(data_df))))). Which approach seems to be better?
+
+```{r}
+# Correlation-based distance
+dist_corr <- as.dist(1 - cor(t(nci_scaled)))
+
+# Perform hierarchical clustering
+hc_corr <- hclust(dist_corr, method = "average")
+
+# Silhouette method
+silhouette_avg_corr <- map_dbl(2:10, function(k) {
+  clusters <- cutree(hc_corr, k = k)
+  sil <- silhouette(clusters, dist_corr)
+  mean(sil[, 3])
+})
+plot(2:10, silhouette_avg_corr, type = "b", pch = 19, col = "blue",
+     xlab = "Number of Clusters", ylab = "Average Silhouette Width")
+
+```
+
+```{r}
+best_k_hc <- 8
+clusters_hc <- cutree(dist_corr, k = best_k_hc)
+fviz_cluster(list(data = nci_scaled, cluster = clusters_hc))
+```
+
+
+Clustering by Gaussian Mixture model
+The idea of Gaussian mixture distribution is to assume that data is a random sample from objects of different types/classes and that observation values in each class are normally distributed. It is possible to allow different degrees for flexibility for distributions of different types of observations - can only means be different or can there be some kind of differences in the covariance matrices also. The command Mclust(), when used with default parameters, chooses the flexibility of the distributions and the number of clusters by using BIC.
+
+## Exercise 4 (Soft clustering by Gaussian mixture model)
+Consider again the dataset lab15.
+
+Use MClust() to determine the best number of clusters. Look also at the plot of BIC values (those are negative of usual BIC values we have used before) by using the plot() command with the parameter what="BIC".
+Visualize the clustering results by fviz_cluster() and also by plot() with the option what="classification". Look also at the estimated probabilities of the 49th observation to belong to different clusters. Which are the two most probable clusters for this observation? Hint: the cluster probabilities can be obtained by predict() command.
+
+```{r}
+# Fit Gaussian mixture model
+gmm_lab15 <- Mclust(lab15)
+
+# BIC plot
+plot(gmm_lab15, what = "BIC")
+
+# Visualize clustering
+fviz_cluster(gmm_lab15)
+plot(gmm_lab15, what = "classification")
+
+# Probabilities for the 49th observation
+predicted_probs <- predict(gmm_lab15)
+predicted_probs$z[49, ] # Probabilities for observation 49
+
+```
+
