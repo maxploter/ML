@@ -1,0 +1,56 @@
+---
+title: "Lab16_exam"
+output: html_notebook
+---
+
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+#library()
+```
+
+```{r}
+reg_df=read_csv( "http://kodu.ut.ee/~rkangro/SML/data1170_reg.csv" )
+```
+```{r}
+reg_df_new=read_csv( "http://kodu.ut.ee/~rkangro/SML/data1170_reg_new.csv" )
+```
+
+```{r}
+summary(reg_df)
+```
+
+```{r}
+set.seed(42)
+
+rec = recipe(outcome~.,data=reg_df) |> step_dummy(all_nominal_predictors())
+cvdata=vfold_cv(reg_df, v=5)
+
+wf_lasso=workflow()|> add_model(linear_reg(penalty=tune(),mixture=1)|>set_engine("glmnet",lambda.min.ratio=10^(-6)))|>add_recipe(rec)
+res_lasso=tune_grid(
+  wf_lasso,
+  cvdata,
+  grid=data.frame(penalty=data.frame(penalty=10^(seq(log10(0.0001 * sd(reg_df$outcome)), log10(sd(reg_df$outcome)), length.out = 10))))
+)
+show_best(res_lasso, metric="rmse")
+```
+```{r}
+wf_final=finalize_workflow(wf_lasso,select_best(res_lasso,metric="rmse"))
+m4_final=wf_final|>fit(reg_df)
+
+m4_final
+```
+
+
+```{r}
+m_select_15 <- workflow()|>add_recipe(rec)|>add_model(linear_reg(engine="glmnet",mixture=1,penalty=0.8491))
+m_select_15_fitted = fit(m_select_15,reg_df)
+tidy(m_select_15_fitted) |> filter(estimate!=0) |> slice(-1)|> pull(term)
+```
+
+```{r}
+
+```
+
+
