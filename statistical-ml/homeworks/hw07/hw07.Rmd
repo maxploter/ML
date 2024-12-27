@@ -1,0 +1,606 @@
+---
+title: "HW07_Ploter"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(GGally)
+library(plotly)
+library(vip)
+library(caret)
+library(mgcv)
+```
+
+# tl;dr
+
+0. I checked that the dataset has no NULLs or N/A values.
+
+1. Plotted histograms of quantitative predictors (XN). Most of the predictor distributions were similar to Gaussian distributions. Some of them had uniform distributions (X10, X11, X15).
+
+2. Plotted a correlation matrix. I observed strong correlations between pairs of variables such as:
+   - X1/X12
+   - X9/X12
+   - X3/X7
+   - X2/X5
+
+   Additionally, I tried to compute the correlation ratio between the decision and quantitative variables but didn't succeed.
+
+3. Plotted box plots between quantitative variables (XN) and the response variable. 
+In my opinion, box plots were quite useful to see if classes are separable. 
+
+I observed that some variables have a large difference between their mean values and quartiles splitted per decision response. 
+I observed such differences for the following variables: X1, X3, X7, X9, X12. My assumption is that such variables might be useful for classification.
+
+4. Then I calculated scatter plots for all possible pairwise combinations of XN variables. Some of them visually seemed more separable than others. 
+I plotted the most promising ones first and the rest later.
+
+5. I plotted density and box plots using the `caret` library. These were the same type of plots as before, so no new insights except better visualization for density plots. 
+On the density plot, you can see that X15 seems promising.
+
+6. Extracted feature importance from the random forest. We identified the following important features: X7, X12, X1, X9, X3, X15.
+
+**NB!**
+Initially, I converted all quantitative variables to dummy variables before visualization section. 
+I couldn't spot any dependencies between nominal quantitative variables and response variables.
+
+Additionally, I had an issue maintaining a consistent recipe in the workflow. When I saved the workflow and read it again, there was an issue with missing dummy columns (e.g., pet_dog) in the dataset. So, I had to revert the dataset transformation before visualization.
+
+---
+
+Next, I focused on models part.
+
+I used cross-validation to evaluate the performance of the model. I also split the data 75% for training and 25% for testing.
+
+I started with the predictors I discovered and tried manually eliminating one of them from the formula to see the impact.
+
+Eventually, I ended up with a GAM model.
+
+
+# Task
+
+The aim of the homework is to find a good classification method for the variable deciasion (having values yes and no) in terms of other variables, when the cost of assinging yes to observations with actual value no is 3 times higher than assigning no to observations with actual value yes. The training data is in hw7_train.csv.
+
+```{r}
+set.seed(39692)
+
+df = read_delim("hw7_train.csv", delim = ",")
+
+#TODO: inconsistency in workflow recipie
+#rec = recipe(decision~.,data=df)|>step_dummy(all_nominal_predictors())
+#df_baked = rec |> prep(df) |> bake(new_data=NULL)
+
+splitted=initial_split(df,prop=0.75, strata = decision)
+train_df=training(splitted)
+test_df=testing(splitted)
+
+cv_data=vfold_cv(train_df,strata=decision, v=5)
+```
+
+
+
+
+# Exploration and visualization
+
+```{r}
+summary(train_df)
+head(train_df)
+```
+```{r}
+str(train_df)
+```
+Decision probability we estimate from the train sample:
+
+```{r}
+freq_table = table(train_df$decision)
+
+probabilities <- freq_table / sum(freq_table)
+
+print(probabilities)
+
+probability_no = probabilities[1]
+probability_yes = probabilities[2]
+```
+
+
+
+```{r}
+hist(train_df$X1, main = "Distribution of X1", xlab = "X1")
+hist(train_df$X2, main = "Distribution of X2", xlab = "X2")
+hist(train_df$X3, main = "Distribution of X3", xlab = "X3")
+hist(train_df$X4, main = "Distribution of X4", xlab = "X4")
+hist(train_df$X5, main = "Distribution of X5", xlab = "X5")
+hist(train_df$X6, main = "Distribution of X6", xlab = "X6")
+hist(train_df$X7, main = "Distribution of X7", xlab = "X7")
+hist(train_df$X9, main = "Distribution of X9", xlab = "X9")
+hist(train_df$X10, main = "Distribution of X10", xlab = "X10")
+hist(train_df$X11, main = "Distribution of X11", xlab = "X11")
+hist(train_df$X12, main = "Distribution of X12", xlab = "X12")
+hist(train_df$X15, main = "Distribution of X15", xlab = "X15")
+hist(train_df$X16, main = "Distribution of X16", xlab = "X16")
+```
+
+
+
+
+
+
+```{r}
+ggcorr(train_df[1:14], 
+       label = TRUE,                 # Add correlation values
+       label_round = 2,              # Round values to 2 decimal places
+       hjust = 1,                    # Adjust label alignment
+       low = "blue",                 # Color for negative correlations
+       mid = "white",                # Color for neutral correlations
+       high = "red",                 # Color for positive correlations
+       label_size = 2                # Increase label text size
+)
+```
+
+
+```{r}
+# Boxplots grouped by decision
+boxplot(X1 ~ decision, data = train_df, main = "Boxplot of X1 by Decision")
+boxplot(X2 ~ decision, data = train_df, main = "Boxplot of X2 by Decision")
+boxplot(X3 ~ decision, data = train_df, main = "Boxplot of X3 by Decision")
+boxplot(X4 ~ decision, data = train_df, main = "Boxplot of X4 by Decision")
+boxplot(X5 ~ decision, data = train_df, main = "Boxplot of X5 by Decision")
+boxplot(X6 ~ decision, data = train_df, main = "Boxplot of X6 by Decision")
+boxplot(X7 ~ decision, data = train_df, main = "Boxplot of X7 by Decision")
+boxplot(X9 ~ decision, data = train_df, main = "Boxplot of X9 by Decision")
+boxplot(X10 ~ decision, data = train_df, main = "Boxplot of X10 by Decision")
+boxplot(X11 ~ decision, data = train_df, main = "Boxplot of X11 by Decision")
+boxplot(X12 ~ decision, data = train_df, main = "Boxplot of X12 by Decision")
+boxplot(X15 ~ decision, data = train_df, main = "Boxplot of X15 by Decision")
+boxplot(X16 ~ decision, data = train_df, main = "Boxplot of X16 by Decision")
+```
+
+More or less promising predictors in terms of separability for decision respoinse:
+
+```{r}
+ggplot(train_df)+geom_point(aes(x=X1,y=X12, col=decision))
+ggplot(train_df)+geom_point(aes(x=X7,y=X12, col=decision))
+ggplot(train_df)+geom_point(aes(x=X3,y=X7, col=decision))
+ggplot(train_df)+geom_point(aes(x=X9,y=X12, col=decision))
+ggplot(train_df)+geom_point(aes(x=X2,y=X5, col=decision))
+ggplot(train_df)+geom_point(aes(x=X7,y=X5, col=decision))
+ggplot(train_df)+geom_point(aes(x=X9,y=X7, col=decision))
+```
+All pairwise combinations scatter plots
+
+```{r}
+ggplot(train_df) + geom_point(aes(x = X1, y = X2, col = decision))
+ggplot(train_df) + geom_point(aes(x = X1, y = X3, col = decision))
+ggplot(train_df) + geom_point(aes(x = X1, y = X4, col = decision))
+ggplot(train_df) + geom_point(aes(x = X1, y = X5, col = decision))
+ggplot(train_df) + geom_point(aes(x = X1, y = X6, col = decision))
+ggplot(train_df) + geom_point(aes(x = X1, y = X7, col = decision))
+ggplot(train_df) + geom_point(aes(x = X1, y = X9, col = decision))
+ggplot(train_df) + geom_point(aes(x = X1, y = X10, col = decision))
+ggplot(train_df) + geom_point(aes(x = X1, y = X11, col = decision))
+ggplot(train_df) + geom_point(aes(x = X1, y = X12, col = decision))
+ggplot(train_df) + geom_point(aes(x = X1, y = X15, col = decision))
+ggplot(train_df) + geom_point(aes(x = X1, y = X16, col = decision))
+ggplot(train_df) + geom_point(aes(x = X2, y = X3, col = decision))
+ggplot(train_df) + geom_point(aes(x = X2, y = X4, col = decision))
+ggplot(train_df) + geom_point(aes(x = X2, y = X5, col = decision))
+ggplot(train_df) + geom_point(aes(x = X2, y = X6, col = decision))
+ggplot(train_df) + geom_point(aes(x = X2, y = X7, col = decision))
+ggplot(train_df) + geom_point(aes(x = X2, y = X9, col = decision))
+ggplot(train_df) + geom_point(aes(x = X2, y = X10, col = decision))
+ggplot(train_df) + geom_point(aes(x = X2, y = X11, col = decision))
+ggplot(train_df) + geom_point(aes(x = X2, y = X12, col = decision))
+ggplot(train_df) + geom_point(aes(x = X2, y = X15, col = decision))
+ggplot(train_df) + geom_point(aes(x = X2, y = X16, col = decision))
+```
+
+```{r}
+ggplot(train_df) + geom_point(aes(x = X3, y = X4, col = decision))
+ggplot(train_df) + geom_point(aes(x = X3, y = X5, col = decision))
+ggplot(train_df) + geom_point(aes(x = X3, y = X6, col = decision))
+ggplot(train_df) + geom_point(aes(x = X3, y = X7, col = decision))
+ggplot(train_df) + geom_point(aes(x = X3, y = X9, col = decision))
+ggplot(train_df) + geom_point(aes(x = X3, y = X10, col = decision))
+ggplot(train_df) + geom_point(aes(x = X3, y = X11, col = decision))
+ggplot(train_df) + geom_point(aes(x = X3, y = X12, col = decision))
+ggplot(train_df) + geom_point(aes(x = X3, y = X15, col = decision))
+ggplot(train_df) + geom_point(aes(x = X3, y = X16, col = decision))
+ggplot(train_df) + geom_point(aes(x = X4, y = X5, col = decision))
+ggplot(train_df) + geom_point(aes(x = X4, y = X6, col = decision))
+ggplot(train_df) + geom_point(aes(x = X4, y = X7, col = decision))
+ggplot(train_df) + geom_point(aes(x = X4, y = X9, col = decision))
+ggplot(train_df) + geom_point(aes(x = X4, y = X10, col = decision))
+ggplot(train_df) + geom_point(aes(x = X4, y = X11, col = decision))
+ggplot(train_df) + geom_point(aes(x = X4, y = X12, col = decision))
+ggplot(train_df) + geom_point(aes(x = X4, y = X15, col = decision))
+ggplot(train_df) + geom_point(aes(x = X4, y = X16, col = decision))
+ggplot(train_df) + geom_point(aes(x = X5, y = X6, col = decision))
+ggplot(train_df) + geom_point(aes(x = X5, y = X7, col = decision))
+ggplot(train_df) + geom_point(aes(x = X5, y = X9, col = decision))
+ggplot(train_df) + geom_point(aes(x = X5, y = X10, col = decision))
+ggplot(train_df) + geom_point(aes(x = X5, y = X11, col = decision))
+ggplot(train_df) + geom_point(aes(x = X5, y = X12, col = decision))
+ggplot(train_df) + geom_point(aes(x = X5, y = X15, col = decision))
+ggplot(train_df) + geom_point(aes(x = X5, y = X16, col = decision))
+ggplot(train_df) + geom_point(aes(x = X6, y = X7, col = decision))
+ggplot(train_df) + geom_point(aes(x = X6, y = X9, col = decision))
+ggplot(train_df) + geom_point(aes(x = X6, y = X10, col = decision))
+ggplot(train_df) + geom_point(aes(x = X6, y = X11, col = decision))
+ggplot(train_df) + geom_point(aes(x = X6, y = X12, col = decision))
+```
+
+
+```{r}
+ggplot(train_df) + geom_point(aes(x = X6, y = X7, col = decision))
+ggplot(train_df) + geom_point(aes(x = X6, y = X9, col = decision))
+ggplot(train_df) + geom_point(aes(x = X6, y = X10, col = decision))
+ggplot(train_df) + geom_point(aes(x = X6, y = X11, col = decision))
+ggplot(train_df) + geom_point(aes(x = X6, y = X12, col = decision))
+ggplot(train_df) + geom_point(aes(x = X6, y = X15, col = decision))
+ggplot(train_df) + geom_point(aes(x = X6, y = X16, col = decision))
+ggplot(train_df) + geom_point(aes(x = X7, y = X9, col = decision))
+ggplot(train_df) + geom_point(aes(x = X7, y = X10, col = decision))
+ggplot(train_df) + geom_point(aes(x = X7, y = X11, col = decision))
+ggplot(train_df) + geom_point(aes(x = X7, y = X12, col = decision))
+ggplot(train_df) + geom_point(aes(x = X7, y = X15, col = decision))
+ggplot(train_df) + geom_point(aes(x = X7, y = X16, col = decision))
+ggplot(train_df) + geom_point(aes(x = X9, y = X10, col = decision))
+ggplot(train_df) + geom_point(aes(x = X9, y = X11, col = decision))
+ggplot(train_df) + geom_point(aes(x = X9, y = X12, col = decision))
+ggplot(train_df) + geom_point(aes(x = X9, y = X15, col = decision))
+ggplot(train_df) + geom_point(aes(x = X9, y = X16, col = decision))
+ggplot(train_df) + geom_point(aes(x = X10, y = X11, col = decision))
+ggplot(train_df) + geom_point(aes(x = X10, y = X12, col = decision))
+ggplot(train_df) + geom_point(aes(x = X10, y = X15, col = decision))
+ggplot(train_df) + geom_point(aes(x = X10, y = X16, col = decision))
+ggplot(train_df) + geom_point(aes(x = X11, y = X12, col = decision))
+ggplot(train_df) + geom_point(aes(x = X11, y = X15, col = decision))
+ggplot(train_df) + geom_point(aes(x = X11, y = X16, col = decision))
+ggplot(train_df) + geom_point(aes(x = X12, y = X15, col = decision))
+ggplot(train_df) + geom_point(aes(x = X12, y = X16, col = decision))
+ggplot(train_df) + geom_point(aes(x = X15, y = X16, col = decision))
+```
+
+```{r}
+table(train_df$pet)
+table(train_df$color)
+table(train_df$country)
+table(train_df$decision)
+```
+
+
+
+```{r}
+featurePlot(x = train_df[, 1:3], 
+            y = train_df$decision, 
+            plot = "pairs",
+            ## Add a key at the top
+            auto.key = list(columns = 3))
+```
+```{r}
+featurePlot(x = train_df[, c(1,2,3,4,5,6,7,9,10,11,12,15,16)], 
+            y = factor(train_df$decision),
+            plot = "density", 
+            ## Pass in options to xyplot() to 
+            ## make it prettier
+            scales = list(x = list(relation="free"), 
+                          y = list(relation="free")), 
+            adjust = 1.5, 
+            pch = "|", 
+            layout = c(4, 1), 
+            auto.key = list(columns = 3))
+```
+
+```{r}
+featurePlot(x = train_df[, c(1,2,3,4,5,6,7,9,10,11,12,15,16)], 
+            y = factor(train_df$decision),
+            plot = "box", 
+            ## Pass in options to bwplot() 
+            scales = list(y = list(relation="free"),
+                          x = list(rot = 90)),  
+            layout = c(4,1 ), 
+            auto.key = list(columns = 2))
+```
+
+```{r}
+# Adding interaction terms for correlated variables
+train_df <- train_df %>%
+  mutate(
+    X1_X12 = X1 * X12,
+    X9_X12 = X9 * X12
+  )
+
+test_df <- test_df %>%
+  mutate(
+    X1_X12 = X1 * X12,
+    X9_X12 = X9 * X12
+  )
+
+# Log-transform skewed variables
+skewed_vars <- c("X7", "X9", "X12")
+#train_df <- train_df %>% mutate(across(all_of(skewed_vars), ~ log1p(.)))
+#test_df <- test_df %>% mutate(across(all_of(skewed_vars), ~ log1p(.)))
+
+# Updated recipe with interaction terms and transformations
+rec <- recipe(decision ~ ., data = train_df) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_interact(terms = ~ X1:X12 + X9:X12) %>%
+  step_log(all_of(skewed_vars))
+```
+
+
+```{r}
+# Correlation heatmap
+correlation_matrix <- train_df %>%
+  select(-decision) %>%
+  cor()
+
+corrplot::corrplot(correlation_matrix, method = "color", type = "upper", tl.cex = 0.7)
+
+# Visualizing the effect of interactions
+train_df %>%
+  ggplot(aes(x = X1_X12, y = as.numeric(decision == "yes"))) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Interaction between X1 and X12", y = "Decision (yes = 1)")
+```
+
+# Find the best model
+
+
+## GAM
+
+```{r}
+summary(train_df)
+```
+
+
+```{r}
+formula = decision~s(X7) + s(X12) + s(X9) + s(X1) + s(X3) + s(X15) + s(X1_X12) + s(X9_X12)
+
+rec=recipe(decision~.,data=train_df) |> step_dummy(all_nominal_predictors())
+
+wf_gam=workflow()|>add_recipe(rec)|>
+  add_model(gen_additive_mod(mode="classification"),formula=formula)
+
+res_tune_gam=tune_grid(wf_gam, resamples=cv_data, metrics =metric_set(mn_log_loss))
+
+show_best(res_tune_gam,metric="mn_log_loss")
+
+wf_final_gam <- finalize_workflow(wf_gam, select_best(res_tune_gam, metric='mn_log_loss')) |>
+  fit(data = train_df)
+```
+
+
+```{r}
+predictions_gam <- augment(wf_final_gam, new_data = test_df)
+
+predictions_gam$decision = factor(predictions_gam$decision)
+
+decision_lvls = levels(predictions_gam$decision)
+stopifnot(decision_lvls == c('no','yes'))
+decision_yes_level = if(decision_lvls[2] == 'yes')'second'else'first'
+stopifnot(decision_yes_level == 'second')
+
+roc_gam=predictions_gam|>roc_curve(decision,.pred_yes,event_level=decision_yes_level)
+plot1=autoplot(roc_gam)
+plot1
+```
+
+When the cost of assigning yes to observations with actual value no is 3 times higher than assigning no to observations with actual value yes. 
+
+```{r}
+min_loss_gam = roc_gam|>mutate(x=1-specificity,y=sensitivity,fn_value=3*probability_no*x+probability_yes*(1-y))|>filter(fn_value==min(fn_value))
+print(min_loss_gam)
+
+threashold_gam = min_loss_gam$.threshold
+```
+
+
+```{r}
+print(predictions_gam |> conf_mat(truth = decision, estimate = .pred_class))
+
+predictions_after_cutoff_gam = predictions_gam |> mutate(.pred_class=factor(if_else(.pred_yes>threashold_gam,"yes","no"),levels=decision_lvls))
+
+conf_matrix <- predictions_after_cutoff_gam |> conf_mat(truth = decision, estimate = .pred_class)
+
+print(conf_matrix)
+
+accuracy_score <- predictions_after_cutoff_gam |> accuracy(truth = decision, estimate = .pred_class)
+
+print(accuracy_score)
+```
+
+## Random forest
+
+```{r}
+# Recipe
+rec <- recipe(
+  decision ~X7+X12+X9+X1+X3+X15,
+  data = train_df)
+
+# Workflow for Random Forest
+wf_rf <- workflow() |>
+  add_recipe(rec) |>
+  add_model(rand_forest(mode = "classification", mtry = tune(), trees = 512))
+
+# Tuning the Random Forest model
+res_tune_rf <- tune_grid(
+  wf_rf,
+  resamples = cv_data,
+  metrics = metric_set(mn_log_loss),
+  grid = 4 # You can adjust the number of grid points if needed
+)
+
+show_best(res_tune_rf, metric = "mn_log_loss")
+
+wf_final_rf <- finalize_workflow(wf_rf, select_best(res_tune_rf, metric='mn_log_loss')) |>
+  fit(data = train_df)
+```
+
+```{r}
+predictions_rf <- augment(wf_final_rf, new_data = test_df)
+
+predictions_rf$decision = factor(predictions_rf$decision)
+
+roc_rf=predictions_rf|>roc_curve(decision,.pred_yes,event_level=decision_yes_level)
+
+plot_gam_rf = plot1+geom_path(data=roc_rf,aes(x=1-specificity,y=sensitivity),color="red")
+plot_gam_rf
+```
+
+When the cost of assigning yes to observations with actual value no is 3 times higher than assigning no to observations with actual value yes. 
+
+```{r}
+min_loss_rf = roc_rf|>mutate(x=1-specificity,y=sensitivity,fn_value=3*probability_no*x+probability_yes*(1-y))|>filter(fn_value==min(fn_value))
+print(min_loss_rf)
+
+threashold_rf = min_loss_rf$.threshold
+```
+
+
+```{r}
+print(predictions_rf |> conf_mat(truth = decision, estimate = .pred_class))
+
+predictions_after_cutoff_rf = predictions_rf |> mutate(.pred_class=factor(if_else(.pred_yes>threashold_rf,"yes","no"),levels=decision_lvls))
+
+conf_matrix <- predictions_after_cutoff_rf |> conf_mat(truth = decision, estimate = .pred_class)
+
+print(conf_matrix)
+
+accuracy_score <- predictions_after_cutoff_rf |> accuracy(truth = decision, estimate = .pred_class)
+
+print(accuracy_score)
+```
+
+
+```{r}
+library(randomForest)
+
+
+
+# Fit the Random Forest model
+rf_model <- randomForest(
+  decision ~ ., 
+  data = recipe(decision~.,data=train_df) |> step_dummy(all_nominal_predictors()) |> prep(data=train_df) |> bake(new_data=NULL), 
+  importance = TRUE, ntree = 500)
+
+# Print the model summary
+print(rf_model)
+
+# Calculate feature importance
+importance <- importance(rf_model)
+importance_df <- data.frame(Feature = rownames(importance), Importance = importance[, 1])
+
+# Print feature importance
+print(importance_df)
+
+ggplot(importance_df, aes(x = reorder(Feature, Importance), y = Importance)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Feature Importance for Random Forest Model",
+       x = "Feature",
+       y = "Importance")
+
+```
+
+
+## SVM
+
+```{r}
+rec <- recipe(decision ~ X7+X12+X9+X1+X3+X15, data = train_df)
+
+# Workflow for SVM
+wf_svm <- workflow() |>
+  add_recipe(rec) |>
+  add_model(
+    #svm_linear(mode="classification",cost=tune()) |> set_engine("kernlab",scaled=TRUE)
+    svm_poly(mode="classification",cost=tune(),engine="kernlab",degree=tune()) |> set_engine("kernlab", prob.model = TRUE)
+    )
+
+cost_grid=expand_grid(cost=c(0.001, 0.01, 1),degree=2:3)
+
+# Tuning the SVM model
+res_tune_svm <- tune_grid(
+  wf_svm,
+  resamples = cv_data,
+  metrics = metric_set(mn_log_loss),
+  grid = cost_grid
+)
+
+show_best(res_tune_svm, metric = "mn_log_loss")
+
+wf_final_svm <- finalize_workflow(
+  wf_svm,
+  select_best(res_tune_svm, metric = "mn_log_loss")
+) |>
+  fit(data = train_df)
+```
+
+
+```{r}
+predictions_svm <- augment(wf_final_svm, new_data = test_df)
+
+predictions_svm$decision = factor(predictions_svm$decision)
+
+roc_svm=predictions_svm|>roc_curve(decision,.pred_yes,event_level=decision_yes_level)
+
+plot_gam_rf+geom_path(data=roc_svm,aes(x=1-specificity,y=sensitivity),color="blue")
+```
+
+
+
+When the cost of assigning yes to observations with actual value no is 3 times higher than assigning no to observations with actual value yes. 
+
+```{r}
+min_loss_svm = roc_svm|>mutate(x=1-specificity,y=sensitivity,fn_value=3*probability_no*x+probability_yes*(1-y))|>filter(fn_value==min(fn_value))
+print(min_loss_svm)
+
+threashold_svm = min_loss_svm$.threshold
+```
+
+
+```{r}
+print(predictions_svm |> conf_mat(truth = decision, estimate = .pred_class))
+
+predictions_after_cutoff_svm = predictions_svm |> mutate(.pred_class=factor(if_else(.pred_yes>threashold_svm,"yes","no"),levels=decision_lvls))
+
+conf_matrix <- predictions_after_cutoff_svm |> conf_mat(truth = decision, estimate = .pred_class)
+
+print(conf_matrix)
+
+accuracy_score <- predictions_after_cutoff_svm |> accuracy(truth = decision, estimate = .pred_class)
+
+print(accuracy_score)
+```
+## Final
+
+```{r}
+sprintf("FINAL THRESHOLD: %f", threashold_gam)
+sprintf("DECISION LVLS: %s", decision_lvls)
+```
+
+
+```{r}
+
+fitted_workflow <- finalize_workflow(wf_gam, select_best(res_tune_gam, metric='mn_log_loss')) |> fit(data = df)
+
+my_predictions <- function(wf, new_data) {
+  predictions <- augment(wf, new_data = new_data)
+  predictions <- predictions |>
+    mutate(.pred_class = factor(
+      if_else(.pred_yes > 0.816406, "yes", "no"),
+      levels = c('no', 'yes')
+    ))
+  return(predictions$.pred_class)
+}
+
+save(
+  model_classification = fitted_workflow,
+  prediction_function = my_predictions,
+  file = "ploter_hw7.Rdata"
+)
+```
+
