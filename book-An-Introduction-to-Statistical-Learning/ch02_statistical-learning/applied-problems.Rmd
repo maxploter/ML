@@ -1,0 +1,41 @@
+---
+title: "Ch02_applied-problems"
+output: html_notebook
+---
+
+## Exercise 8.
+This exercise relates to the College data set, which can be found in the file College.csv on the book website. It contains a number of variables for 777 different universities and colleges in the US. The variables are
+
+```{r}
+college <- read.csv("College.csv") 
+```
+
+```{r}
+View(college)
+```
+
+```{r}
+rownames(college) <- college[, 1]
+View(college)
+```
+
+```{r}
+college <- college[, -1]
+View(college)
+```
+
+### c)
+
+```{r}
+summary(college)
+```
+
+```{r}
+numeric_college <- college[, 1:10]
+
+pairs(numeric_college)
+```
+
+
+
+
