@@ -1,0 +1,138 @@
+---
+title: "Ch02_lab"
+output: html_notebook
+---
+
+## 2.3.1 Basic Commands
+
+```{r}
+x <- c(1, 3, 2)
+x
+```
+
+```{r}
+y = c(1, 4, 3)
+y
+```
+
+```{r}
+length(x)
+length(y)
+```
+
+```{r}
+x+y
+```
+
+```{r}
+ls()
+
+rm(x, y)
+```
+
+```{r}
+rm(list=ls())
+```
+
+
+```{r}
+x <- matrix(data = c(1, 2, 3, 4), nrow = 2, ncol = 2)
+
+matrix(data = c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow=TRUE)
+
+sqrt(x)
+```
+
+```{r}
+x = rnorm(50)
+y = x + rnorm(50, mean=50, sd = .1)
+
+cor(x, y)
+```
+```{r}
+set.seed(1303)
+rnorm(50)
+```
+```{r}
+set.seed(3)
+
+y = rnorm(100)
+
+mean(y)
+
+var(y)
+
+sqrt(var(y))
+
+sd(y)
+```
+
+## 2.3.2 Graphics
+
+```{r}
+x = rnorm(100)
+y = rnorm(100)
+
+plot(x, y,
+     xlab = 'x-axis', ylab = 'y-axis', main = 'Plot x and y')
+```
+```{r}
+x = seq(1, 10)
+x
+x = 1:10
+x
+
+x = seq(-pi, pi, length=50)
+x
+```
+
+```{r}
+y = x
+f = outer(x, y, function(x,y) cos(y) / (1+x^2))
+contour(x,y,f)
+
+contour(x, y, f, nlevels = 45)
+```
+
+```{r}
+x = 1:10
+y = x
+f_simple = outer(x, y, function(x,y) x+y)
+
+contour(x, y, f_simple)
+```
+
+```{r}
+x = seq(-pi, pi, length=50)
+y = x
+fa <- (f - t(f)) / 2
+image(x, y, fa)
+
+persp(x, y, fa)
+persp(x, y, fa, theta=30) # phi=20
+```
+
+## 2.3.3 Indexing Data
+
+```{r}
+A = matrix(1:16, 4, 4)
+
+A
+```
+```{r}
+A[1,1]
+
+A[c(1, 3), c(3, 4)]
+
+A[1,]
+A[,1]
+
+dim(A)
+```
+
+## 2.3.4 Loading Data
+
+```{r}
+
+```
+

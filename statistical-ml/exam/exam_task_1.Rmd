@@ -1,0 +1,131 @@
+---
+title: "exam_1_ploter"
+output: html_notebook
+---
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+#library()
+```
+
+```{r}
+reg_df=read_csv( "http://kodu.ut.ee/~rkangro/SML/data8007_reg.csv" )
+```
+
+```{r}
+reg_new=read_csv( "http://kodu.ut.ee/~rkangro/SML/data8007_reg_new.csv" )
+```
+
+```{r}
+summary(reg_df)
+```
+
+## RF and GAM
+
+### RF
+
+```{r}
+set.seed(42)
+
+rec = recipe(Y~.,data=reg_df)
+
+cvdata=vfold_cv(reg_df, v=5)
+```
+
+```{r}
+
+wf_rf= workflow() |> add_recipe(rec)|>
+  add_model(rand_forest(mode="regression",trees=500,mtry=tune()) |> set_engine("ranger",importance="permutation"))
+
+tuning_grid=tibble(mtry=c(2, 4, 8, 16, 32, 48))
+
+tune_res_rf=tune_grid(wf_rf,cvdata, grid=tuning_grid)
+show_best(tune_res_rf, metric="rmse")
+
+fit_rf = wf_rf|>finalize_workflow(select_best(tune_res_rf,metric="rmse"))|>fit(data=reg_df)
+```
+```{r}
+extract_fit_engine(fit_rf)$variable.importance|>sort()
+```
+
+```{r}
+top_predictor_names = names(head(sort(extract_fit_engine(fit_rf)$variable.importance, decreasing = TRUE), 12))
+```
+
+### GAM
+
+```{r}
+ggplot(reg_df) + geom_point(aes(x = x31, y = Y))
+ggplot(reg_df) + geom_point(aes(x = x12, y = Y))
+ggplot(reg_df) + geom_point(aes(x = x20, y = Y))
+ggplot(reg_df) + geom_point(aes(x = x21, y = Y))
+ggplot(reg_df) + geom_point(aes(x = x52, y = Y))
+ggplot(reg_df) + geom_point(aes(x = x38, y = Y))
+```
+
+```{r}
+wf_gam = workflow()|>
+  add_recipe(rec)|>
+  add_model(
+    gen_additive_mod(mode="regression"),
+    formula=Y ~ s(x31) + s(x12) + s(x20) + s(x21) + x52 + s(x38)
+    )
+res_gam = fit_resamples(wf_gam, cvdata,metrics = metric_set(rmse))
+collect_metrics(res_gam)
+```
+```{r}
+fit_gam = wf_gam|>finalize_workflow(select_best(res_gam,metric="rmse"))|>fit(data=reg_df)
+df_gam=augment(fit_gam, new_data=reg_df)
+ggplot(df_gam ,aes(x=x31))+geom_point(aes(y=.resid))+geom_smooth(aes(y=.resid))
+```
+
+
+## Find kNN
+
+```{r}
+# Recipe 1: Top 3 predictors
+rec_knn_1 = recipe(Y ~ x31 + x12 + x20 + x21 + x52 + x38, data = reg_df) |> step_dummy(x52,one_hot=TRUE)
+
+recipes_list = list(rec_knn_1)
+
+tuning_grid=expand_grid(neighbors=c(4,8,16,32),dist_power=c(0.5,1,2))
+
+knn_spec = nearest_neighbor(
+  mode = "regression",
+  neighbors = tune(),
+  dist_power = tune()
+) |>
+  set_engine("kknn")
+
+results = lapply(recipes_list, function(rec) {
+  wf = workflow() |>
+    add_recipe(rec) |>
+    add_model(knn_spec)
+  
+  wf |>
+    tune_grid(
+      resamples = cvdata,
+      grid = tuning_grid,
+      metrics = metric_set(rmse)
+    )
+})
+
+best_results = lapply(results, show_best, metric="rmse")
+best_results
+```
+
+## Best overall model
+
+```{r}
+best_model = fit_gam
+```
+
+
+## Predict
+
+```{r}
+results=augment(best_model, new_data=reg_new)
+results
+```
+

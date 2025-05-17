@@ -1,0 +1,142 @@
+---
+title: "exam_2_ploter"
+output: html_notebook
+---
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+#library()
+```
+
+
+```{r}
+clas_df=read_csv( "http://kodu.ut.ee/~rkangro/SML/data8007_clas.csv" )
+```
+
+```{r}
+clas_new=read_csv( "http://kodu.ut.ee/~rkangro/SML/data8007_clas_new.csv" )
+```
+
+```{r}
+summary(clas_df)
+```
+
+
+```{r}
+set.seed(42)
+
+rec = recipe(Level~.,data=clas_df)
+
+cvdata=vfold_cv(clas_df, v=5)
+```
+
+```{r}
+
+wf_rf= workflow() |> add_recipe(rec)|>
+  add_model(rand_forest(mode="classification",trees=500,mtry=tune()) |> set_engine("ranger",importance="impurity"))
+
+tuning_grid=tibble(mtry=c(2, 4, 8, 16, 32, 48))
+
+tune_res_rf=tune_grid(wf_rf,cvdata, grid=tuning_grid)
+show_best(tune_res_rf)
+
+fit_rf = wf_rf|>finalize_workflow(select_best(tune_res_rf))|>fit(data=clas_df)
+```
+
+```{r}
+extract_fit_engine(fit_rf)$variable.importance|>sort()
+```
+
+```{r}
+hist(clas_df$x19, main = "Distribution of XN")
+hist(clas_df$x43, main = "Distribution of XN")
+hist(clas_df$x1, main = "Distribution of XN")
+hist(clas_df$x60, main = "Distribution of XN")
+#hist(clas_df$x47, main = "Distribution of XN")
+hist(clas_df$x18, main = "Distribution of XN")
+```
+
+```{r}
+boxplot(x19 ~ Level, data = clas_df, main = "Boxplot of xN by Level")
+boxplot(x43 ~ Level, data = clas_df, main = "Boxplot of xN by Level")
+boxplot(x1 ~ Level, data = clas_df, main = "Boxplot of xN by Level")
+boxplot(x60 ~ Level, data = clas_df, main = "Boxplot of xN by Level")
+boxplot(x18 ~ Level, data = clas_df, main = "Boxplot of xN by Level")
+```
+
+## kNN model
+
+```{r}
+# Recipe 1: Top 3 predictors
+
+rec_knn_1 = recipe(Level ~ x18+x47+x60+x1+x43+x19, data = clas_df) |> step_dummy(x47,one_hot=TRUE)
+
+recipes_list = list(rec_knn_1)
+
+tuning_grid=expand_grid(neighbors=c(4,8,16,32),dist_power=c(0.5,1,2))
+
+knn_spec = nearest_neighbor(
+  mode = "classification",
+  neighbors = tune(),
+  dist_power = tune()
+) |>
+  set_engine("kknn")
+
+results = lapply(recipes_list, function(rec) {
+  wf = workflow() |>
+    add_recipe(rec) |>
+    add_model(knn_spec)
+  
+  wf |>
+    tune_grid(
+      resamples = cvdata,
+      grid = tuning_grid,
+      
+    )
+})
+
+best_results = lapply(results, show_best)
+best_results
+```
+
+
+```{r}
+fit_knn = best_results|>finalize_workflow(select_best(best_results))|>fit(data=clas_df)
+```
+
+
+
+## Bagged Trees model
+
+```{r}
+
+rec_bag = recipe(Level ~ x18+x47+x60+x1+x43+x19, data = clas_df)
+
+#  Alternative way to use bagged trees is to use the fact that random forests coincide with bagged trees if at each step all predictors are considered.
+wf_bag= workflow() |> add_recipe(rec)|>
+  add_model(rand_forest(mode="classification",trees=tune(),mtry=6) |> set_engine("ranger",importance="impurity"))
+
+tuning_grid=tibble(trees=c(256,512,1024))
+
+tune_res_rf=tune_grid(wf_bag,cvdata, grid=tuning_grid)
+show_best(tune_res_rf)
+
+fit_rf = wf_rf|>finalize_workflow(select_best(tune_res_rf))|>fit(data=clas_df)
+```
+
+
+## Best model
+```{r}
+# SELECT KNN
+#best_model = KNN
+```
+
+
+## Prediction
+
+```{r}
+results=augment(best_model, new_data=clas_new)
+results
+```
+
