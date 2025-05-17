@@ -1,3 +1,9 @@
 [submodule "machine-learning-ii"]
 	path = machine-learning-ii
 	url = git@github.com:swenlaur/machine-learning-ii.git
+[submodule "MachineLearningSeminars"]
+	path = MachineLearningSeminars
+	url = git@github.com:andriygav/MachineLearningSeminars.git
+[submodule "ml-course-msu"]
+	path = ml-course-msu
+	url = git@github.com:esokolov/ml-course-msu.git
