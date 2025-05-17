@@ -1,0 +1,100 @@
+---
+title: "Lab16"
+output: html_notebook
+---
+
+```{r}
+library(dplyr)
+library(ggfortify)
+library(tidyverse)
+library(tidymodels)
+
+library(factoextra)
+library(cluster)
+library(mclust)
+```
+
+
+```{r}
+set.seed(20231221)
+n=100
+x=1:n/20
+y=exp(-3+x+(x-3)^2+rnorm(n,sd=0.1))
+train_df=tibble(x=x,C=sample(c("a","b","c",NA),n, replace=TRUE,prob=c(0.4,0.3,0.2,0.1)),y=y)
+new_data=tibble(x=c(0,1),C=c(NA,"b"))
+correct_predictions=-3+new_data$x+(new_data$x-3)^2
+```
+
+
+
+
+## Exercise 1
+Perform the transformations manually. Make sure that transformations of new data work correctly and that predictions are accurate
+
+
+```{r}
+table(train_df$C)
+```
+
+```{r}
+get_mode = function (x) {
+  tmp = names(sort(table(x)))[1]
+}
+
+transformed_df = train_df |> mutate(x=x-mean(x), C=coalesce(C, get_mode(C)), x2=x^2, y=log(y))
+
+model=lm(y~., data=transformed_df)
+
+# INCORRECT
+#transformed_new = new_data |> mutate(x=x-mean(x), C=coalesce(C, get_mode(C)), x2=x^2) #, y=log(y))
+# BETTER use constants from train dataset
+transformed_new = new_data |> mutate(x=x-mean(train_df$x), C=coalesce(C, get_mode(train_df$C)), x2=x^2) #, y=log(y))
+
+# Prediction is incorrect because every constant should be taken from train sampe (mode).
+rbind(predict(model, newdata=transformed_new), correct_predictions)
+```
+
+Correct approach
+
+## Exercise 2
+Make a recipe for required transformations. Perform the task by using this recipe for data transformation before model fitting and before predictions
+
+
+
+```{r}
+# mutate compute mean of the new data
+# another edge case when transform to factor variable
+rec_transf = recipe(y~., data=train_df) |> 
+  step_log(y, skip=TRUE) |>
+  step_center(x) |>
+  step_mutate(x2=x^2) |>
+  step_impute_mode(C)
+
+rec_prepared=rec_transf|> prep(train_df)
+transformed_data = rec_prepared|>bake(NULL)
+model = lm(y~., data=transformed_data)
+
+transformed_new = bake(rec_prepared, new_data)
+transformed_new
+
+rbind(predict(model, newdata=transformed_new), correct_predictions)
+```
+
+
+## Exercise 3
+Include the transformations in a workflow, fit a model for training data and make predictions for new data.
+
+```{r}
+# mutate compute mean of the new data
+# another edge case when transform to factor variable
+rec_transf = recipe(y~., data=train_df) |> 
+  step_log(y, skip=TRUE) |>
+  step_center(x) |>
+  step_mutate(x2=x^2) |>
+  step_impute_mode(C)
+
+wf=workflow()|> add_recipe(rec_transf) |> add_model(linear_reg())
+wf_trained = wf|> fit(train_df)
+
+wf_trained|>predict(new_data)
+```

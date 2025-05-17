@@ -1,0 +1,136 @@
+---
+title: "Lab14"
+output: html_notebook
+---
+
+```{r}
+library(dplyr)
+library(ggfortify)
+library(tidyverse)
+```
+
+
+## Exercise 1.
+Consider data set USArrests.
+
+Look at the means and standard deviations of features of the data set USArrests. Which is the variable with highest variance?
+
+```{r}
+USArrests |> summarize(across(everything(), .fns=~mean(.x)))
+USArrests |> summarize(across(everything(), .fns=~sd(.x)))
+```
+
+
+Find principal components by using scaling of variables. Look at the components of results. Do you understand, what is the meaning of those components?
+
+```{r}
+ex1.1 = stats::prcomp(USArrests, scale=TRUE)
+glimpse(ex1.1)
+```
+```{r}
+ex1.1$rotation
+```
+
+
+Verify that principal components are computed by multiplying scaled data (which can be obtained by scale(USArrests)) with matrix containing direction vectors of components). Matrix multiplication is %*% in R.
+
+```{r}
+scale(USArrests) %*% ex1.1$rotation - ex1.1$x
+```
+
+
+Produce a graph of of principal components, which shows state names and loading vectors
+
+```{r}
+autoplot(ex1.1, label=FALSE, loadings=TRUE, loadings.label=TRUE, x=1, y=2, scale=0, shape=TRUE)
+```
+
+
+Direction vectors are determined only up to multiplying with -1, so different implementations of PCA can produce different pictures. Produce a graph with first two principal components and loading vectors if all direction vectors are chosen to have opposite directions from the original result. Hint: multiply component matrix and rotation matrix with -1.
+
+```{r}
+ex1.1$x = -ex1.1$x
+ex1.1$rotation = -ex1.1$rotation
+
+
+autoplot(ex1.1, label=TRUE, loadings=TRUE, loadings.label=TRUE, x=1, y=2, scale=0, shape=TRUE)
+```
+
+
+Produce a scree plot (plot of variance of a component divided by the total variance) of PCA result
+
+```{r}
+proc_explained = ex1.1$sdev^2/sum(ex1.1$sdev^2)
+
+ggplot(data.frame(comp_number=1:length(proc_explained), prox_explained=proc_explained)) + geom_line(aes(comp_number, proc_explained))
+```
+
+
+Analyze the results if scaling of variables were not used.
+
+```{r}
+ex1.2 = stats::prcomp(USArrests, scale=FALSE)
+glimpse(ex1.2)
+```
+```{r}
+ex1.2$rotation
+```
+
+
+
+## Exercise 2.
+Consider data set ISLR::NCI60.
+
+use glimpse to see the format of the data set
+
+```{r}
+
+glimpse(ISLR::NCI60)
+data2 = ISLR::NCI60$data
+```
+
+
+```{r}
+ISLR::NCI60 |> summarize(across(everything(), .fns=~mean(.x)))
+ISLR::NCI60 |> summarize(across(everything(), .fns=~sd(.x)))
+```
+
+Look at the standard deviations of numerical features. what are the smallest and largest values of standard deviations of gene expressions?
+
+```{r}
+as.data.frame(data2) |> summarize(across(everything(), .fns=~mean(.x)))
+
+sd_vals = apply(data2, 2, sd) #as.data.frame(data2, 2, sd) |> summarize(across(everything(), .fns=~sd(.x)))
+range(sd_vals)
+
+summary(sd_vals)
+```
+
+
+Find principal components without scaling variables. How many genes have loadings in the first component which are larger than 0.06 in absolute value?
+Produce a pairwise graphs of first three principal components which show the different types of cancers with different colors. How well one can distinguish different cancer types by two-dimensional projections?
+
+```{r}
+ex2.1 = stats::prcomp(data2)
+v1 = ex2.1$rotation[,1]
+
+sum(abs(v1) > 0.06)
+```
+
+```{r}
+range(v1)
+```
+
+Produce scree plot explained variance plot for the PCA method. How many components are needed to explain more than 80% of variance in the data?
+Repeat the previous steps by applying PCA to normalized data. Which approach gives better graphs?
+
+```{r}
+autoplot(ex2.1, data=as.tibble(data2) |> mutate(labels=ISLR::NCI60$labs), label=FALSE, loadings=FALSE, x=1, y=2, colour='labels')
+```
+
+
+## Exercise 3 (for extra practice)
+Install package rsvd and load the dataset digits from it. Note that in the first column there are labels of actual handwritten digits, which we leave out of PCA; remaining columns are pixels of digits.
+
+Look at the first digit by forming a 28*28 matrix of the pixels and then by using the command image(digit_matrix[,28:1], col = gray(255:0 / 255))
+Check if on the pairwise plots of the first 3 principal components it is possible to separate different digits (select 50 digits from each class for producing graphs)

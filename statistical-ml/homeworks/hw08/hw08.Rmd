@@ -1,0 +1,124 @@
+---
+title: "HW08_ploter"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(ggplot2)
+library(GGally)
+library(dplyr)
+library(ggfortify)
+library(factoextra)
+library(cluster)
+library(mclust)
+```
+
+
+## Exercise 1
+1) Produce scatterplot of your data set with respect to the pair of variables which show most clearly some different groups of observations and also a scatterplot of points with respect to the first two principal components. Based on those plots, how many clusters there seems to be in the data?
+
+```{r}
+df = read_delim("hw8_C39692.csv", delim = ",")
+```
+```{r}
+ggplot(df, aes(x = x1, y = x2)) +
+  geom_point() +
+  theme_minimal()
+```
+```{r}
+p = stats::prcomp(df, scale=TRUE)
+autoplot(p, label=FALSE, loadings=TRUE, loadings.label=TRUE, x=1, y=2, scale=0, shape=TRUE)
+```
+
+Based on plots there are 3 clusters.
+
+## Exercise 2
+2) Determine the best number of clusters for k-means method in the case of unscaled data by using elbow rule. Produce corresponding plot of clusters (showing cluster membership by color) using the same variables you chose in the first exercise.
+
+```{r}
+tot_withinss = map_dbl(2:10, function(k) {
+  kmeans(df, centers = k, nstart = 20)$tot.withinss
+})
+
+plot(2:10, tot_withinss, type = "b", pch = 19, col = "blue", 
+     xlab = "Number of Clusters", ylab = "Total Within-cluster Sum of Squares")
+```
+```{r}
+kmeans_3_diff = kmeans(df, centers = 3, nstart = 20)
+fviz_cluster(kmeans_3_diff, data = df, choose.vars = c("x1", "x2"))
+```
+
+
+## Exercise 3
+3) Find the best number of clusters for k-means method in the case of scaled data and average silhouette method. Produce corresponding plot of clusters.
+
+```{r}
+df_scaled = scale(df)
+
+tot_withinss_scaled = map_dbl(2:10, function(k) {
+  kmeans(df_scaled, centers = k, nstart = 20)$tot.withinss
+})
+plot(2:10, tot_withinss_scaled, type = "b", pch = 19, col = "blue",
+     xlab = "Number of Clusters", ylab = "Total Within-cluster Sum of Squares")
+```
+
+```{r}
+kmeans_3_diff = kmeans(df_scaled, centers = 3, nstart = 20)
+fviz_cluster(kmeans_3_diff, data = df, choose.vars = c("x1", "x2"))
+```
+
+
+```{r}
+silhouette_avg = map_dbl(2:10, function(k) {
+  km = kmeans(df_scaled, centers = k, nstart = 20)
+  sil = silhouette(km$cluster, dist(df_scaled))
+  mean(sil[, 3])
+})
+
+plot(2:10, silhouette_avg, type = "b", pch = 19, col = "red", 
+     xlab = "Number of Clusters", ylab = "Average Silhouette Width")
+```
+```{r}
+kmeans_2_diff = kmeans(df_scaled, centers = 2, nstart = 20)
+fviz_cluster(kmeans_2_diff, data = df, choose.vars = c("x1", "x2"))
+```
+
+
+## Exercise 4
+4) Determine the best number of clusters (based on largest gap between appearance of new clusters) for hierarchical clustering of the data when Minkowski’s distance with p = 4 is used (see the help of dist function) is used. Produce the corresponding plot of clusters
+
+```{r}
+minkowski_dist = dist(df, method = "minkowski", p = 4)
+
+hclust_complete = hclust(minkowski_dist, method = "complete")
+
+plot(hclust_complete, labels = FALSE, main = "Complete Linkage Dendrogram")
+rect.hclust(hclust_complete, k = 3, border = "red")
+```
+
+## Exercise 5
+5) Find the best number of clusters by using average silhouette method for the data when correlation based distance is used in the hierarchical clustering. Produce the corresponding plot of clusters.
+
+```{r}
+
+dist_corr = as.dist(1 - cor(t(df_scaled)))
+
+hc_corr = hclust(dist_corr, method = "average")
+
+silhouette_avg_corr = map_dbl(2:10, function(k) {
+  clusters = cutree(hc_corr, k = k)
+  sil = silhouette(clusters, dist_corr)
+  mean(sil[, 3])
+})
+plot(2:10, silhouette_avg_corr, type = "b", pch = 19, col = "blue",
+     xlab = "Number of Clusters", ylab = "Average Silhouette Width")
+```
+
+```{r}
+clusters_hc = cutree(hc_corr, k = 2)
+fviz_cluster(list(data = df_scaled, cluster = clusters_hc), choose.vars = c("x1", "x2"))
+```
+
