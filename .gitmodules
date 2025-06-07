@@ -1,5 +1,5 @@
-[submodule "machine-learning-ii"]
-	path = machine-learning-ii
+[submodule "course-ml2-tartu-swenlaur/machine-learning-ii"]
+	path = course-ml2-tartu-swenlaur/machine-learning-ii
 	url = git@github.com:swenlaur/machine-learning-ii.git
 [submodule "course-ml-voron/MachineLearningSeminars"]
 	path = course-ml-voron/MachineLearningSeminars
