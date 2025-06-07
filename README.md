@@ -13,7 +13,8 @@ The project is organized into subprojects, each with its own focus and set of ex
 * NN - Neural Networks
 * NLP - Natural Language Processing
 * SL - Statistical Learning
-* ML2 - ML2
+* ML2 - University of Tartu source
+* MLV - Course Voron
 
 ### Admin prefixes
 
