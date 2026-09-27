@@ -15,6 +15,7 @@ The project is organized into subprojects, each with its own focus and set of ex
 * SL - Statistical Learning
 * ML2 - University of Tartu source
 * MLV - Course Voron
+* PRML - Bishop, Pattern Recognition and Machine Learning
 
 ### Admin prefixes
 
