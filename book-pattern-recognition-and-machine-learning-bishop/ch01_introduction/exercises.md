@@ -5,6 +5,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 ## Solved
 
 - 1.1 (30.09.2026)
+- 1.3 (14.10.2026)
 
 ---
 
