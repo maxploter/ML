@@ -21,7 +21,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 >
 > Aᵢⱼ = Σₙ₌₁ᴺ (xₙ)ⁱ⁺ʲ,   Tᵢ = Σₙ₌₁ᴺ (xₙ)ⁱ tₙ.          (1.123)
 
-Handwritten original: [`ex-1.1-handwritten.jpg`](ex-1.1-handwritten.jpg). Below is a transcription
+Handwritten original: [`ex-1.1-handwritten.png`](ex-1.1-handwritten.png). Below is a transcription
 of that page.
 
 ### Setup
@@ -102,8 +102,8 @@ Open bonus questions:
 > selecting an apple? If we observe that the selected fruit is in fact an orange, what is the
 > probability that it came from the green box?
 
-Handwritten originals: [`ex-1.3-handwritten-1.jpg`](ex-1.3-handwritten-1.jpg),
-[`ex-1.3-handwritten-2.jpg`](ex-1.3-handwritten-2.jpg). Below is a transcription of those pages.
+Handwritten originals: [`ex-1.3-handwritten-1.png`](ex-1.3-handwritten-1.png),
+[`ex-1.3-handwritten-2.png`](ex-1.3-handwritten-2.png). Below is a transcription of those pages.
 
 ### Data
 
