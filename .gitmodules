@@ -7,3 +7,6 @@
 [submodule "course-ml-voron/ml-course-msu"]
 	path = course-ml-voron/ml-course-msu
 	url = git@github.com:esokolov/ml-course-msu.git
+[submodule "course-ml-hse-bogdanpotanin/Machine-Learning"]
+	path = course-ml-hse-bogdanpotanin/Machine-Learning
+	url = git@github.com:bogdanpotanin/Machine-Learning.git
