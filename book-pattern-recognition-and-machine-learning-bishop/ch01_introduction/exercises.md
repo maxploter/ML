@@ -88,3 +88,68 @@ Open bonus questions:
 
 - Why is this stationary point a minimum, not a maximum?
 - Name A and T in terms of X and **t**. Cross-check with MML §9.2.
+
+---
+
+## Exercise 1.3 (\*\*)
+
+> Suppose that we have three coloured boxes r (red), b (blue), and g (green). Box r contains
+> 3 apples, 4 oranges, and 3 limes, box b contains 1 apple, 1 orange, and 0 limes, and box g
+> contains 3 apples, 3 oranges, and 4 limes. If a box is chosen at random with probabilities
+> p(r) = 0.2, p(b) = 0.2, p(g) = 0.6, and a piece of fruit is removed from the box (with equal
+> probability of selecting any of the items in the box), then what is the probability of
+> selecting an apple? If we observe that the selected fruit is in fact an orange, what is the
+> probability that it came from the green box?
+
+Handwritten originals: [`ex-1.3-handwritten-1.jpg`](ex-1.3-handwritten-1.jpg),
+[`ex-1.3-handwritten-2.jpg`](ex-1.3-handwritten-2.jpg). Below is a transcription of those pages.
+
+### Data
+
+| box | apples | oranges | limes | total | p(box) |
+|---|---|---|---|---|---|
+| r | 3 | 4 | 3 | 10 | 0.2 |
+| b | 1 | 1 | 0 | 2 | 0.2 |
+| g | 3 | 3 | 4 | 10 | 0.6 |
+
+Drawn as a tree: first the box (branch weight p(box)), then the fruit (branch weight p(fruit|box)).
+
+### Probability of an apple
+
+Use the product rule (1.11) for each joint, p(a, box) = p(a|box)·p(box). Then the sum rule
+(1.10) over boxes:
+
+p(a) = p(a|r)·p(r) + p(a|b)·p(b) + p(a|g)·p(g)
+   = 3/10 · 0.2 + 1/2 · 0.2 + 3/10 · 0.6
+   = 0.2 · (3 + 5 + 9) / 10 = 0.2 · 17 / 10 = **0.34**
+
+### Probability of the green box given an orange
+
+Picture it as area: the orange outcomes make up a total area p(o). The part of that area lying in
+the green box is p(o|g)·p(g). So, by Bayes (1.12):
+
+p(g|o) = p(o|g)·p(g) / p(o)
+
+p(o) = p(o|r)·p(r) + p(o|b)·p(b) + p(o|g)·p(g)
+   = 4/10 · 0.2 + 1/2 · 0.2 + 3/10 · 0.6
+   = 0.08 + 0.10 + 0.18 = 0.36
+
+p(g|o) = 0.18 / 0.36 = **0.5**
+
+### Review notes (professor)
+
+Method correct throughout: sum rule, product rule, Bayes. Points from the pages:
+
+1. On page 2, p(o) leaves out the blue term p(o|b)·p(b). Box b has 1 orange; its 0 is the limes.
+   That gave p(o) = 0.26 and p(g|o) = 9/13 ≈ 0.69. With blue included it's 0.36 and 0.5 (above).
+2. The numerator is computed as p(o) − p(o|r)·p(r). That works, but the direct green term
+   p(o|g)·p(g) is simpler and doesn't depend on every other box being subtracted.
+3. The last line is labelled p(o|g) but computes p(g|o). Bayes is exactly the step between those
+   two, so keep the labels straight.
+4. The crossed-out p(r|a)·p(a) on page 1 isn't wrong. It's the other factorisation of the same
+   joint: p(a, r) = p(a|r)·p(r) = p(r|a)·p(a). That equality *is* Bayes' theorem. It just can't be
+   used to compute p(a), because it contains p(a). The tree labels p(r)·p(a) should read p(a|r).
+
+In practice: p(g|o) is a posterior over a hidden cause (which box) given an observation (which
+fruit). The same computation shows up in naive Bayes classifiers and in the E-step of a mixture
+model (PRML Ch. 9).
