@@ -7,6 +7,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.1 (30.09.2026)
 - 1.3 (14.10.2026)
 - 1.4 (17.10.2026)
+- 1.5 (17.10.2026)
 
 ---
 
@@ -230,3 +231,40 @@ maximum moves with the variable, because there's no Jacobian.
 In practice: MAP estimates depend on parameterisation (maximising over σ² vs log σ gives different
 answers) for exactly this reason. Normalizing flows train on the same formula: their
 log-det-Jacobian term is log |g′|.
+
+---
+
+## Exercise 1.5 (\*)
+
+> Using the definition (1.38) show that var[f(x)] satisfies (1.39).
+
+(1.38): var[f] = E[(f(x) − E[f(x)])²]   (1.39): var[f] = E[f(x)²] − E[f(x)]²
+
+Handwritten original: [`ex-1.5-handwritten.png`](ex-1.5-handwritten.png). Below is a transcription
+of that page.
+
+### Proof
+
+Write μ = E[f(x)]. It's a number, not a function of x.
+
+var[f] = E[(f(x) − μ)²]
+   = E[f(x)² − 2 f(x) μ + μ²]       (expand the square)
+   = E[f(x)²] − 2 E[f(x) μ] + E[μ²]   (linearity of E)
+   = E[f(x)²] − 2 μ·E[f(x)] + μ²     (μ is a constant: E[c·f] = c·E[f], E[c] = c)
+   = E[f(x)²] − 2μ² + μ²
+   = E[f(x)²] − E[f(x)]²  ∎
+
+### Review notes (professor)
+
+Correct and complete on the first attempt. One thing to make explicit in your own writing:
+
+1. The step from E[f(x)·E[f(x)]] to E[f(x)]·E[f(x)] uses the fact that E[f(x)] is a **constant**,
+   so it can come out of the outer expectation. Say so on the line where you use it. It's the only
+   non-mechanical step in the proof.
+2. Brackets: E[f(x)²] (mean of the square) and E[f(x)]² (square of the mean) differ only in
+   where the ² sits, and the page shows a couple of exponents being moved. Their difference *is*
+   the variance, so it's worth keeping them visually distinct, e.g. E[f(x)²] vs (E[f(x)])².
+
+In practice: this identity is how variance is computed in one pass over data (keep running sums of
+f and f²), e.g. in BatchNorm statistics. It's also numerically unstable when the mean is large
+compared with the spread (catastrophic cancellation), which is why Welford's algorithm exists.
