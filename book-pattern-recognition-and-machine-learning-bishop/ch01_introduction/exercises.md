@@ -8,6 +8,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.3 (14.10.2026)
 - 1.4 (17.10.2026)
 - 1.5 (17.10.2026)
+- 1.6 (17.10.2026)
 
 ---
 
@@ -268,3 +269,44 @@ Correct and complete on the first attempt. One thing to make explicit in your ow
 In practice: this identity is how variance is computed in one pass over data (keep running sums of
 f and f²), e.g. in BatchNorm statistics. It's also numerically unstable when the mean is large
 compared with the spread (catastrophic cancellation), which is why Welford's algorithm exists.
+
+---
+
+## Exercise 1.6 (\*)
+
+> Show that if two variables x and y are independent, then their covariance is zero.
+
+Handwritten original: [`ex-1.6-handwritten.png`](ex-1.6-handwritten.png). Below is a transcription
+of that page.
+
+### Proof
+
+Covariance (1.41): cov[x, y] = E_{x,y}[xy] − E[x]·E[y].
+
+Independence means the joint factorises: p(x, y) = p(x)·p(y). So
+
+E_{x,y}[xy] = Σ_x Σ_y x·y·p(x, y)
+     = Σ_x Σ_y x·p(x) · y·p(y)
+     = ( Σ_x x·p(x) ) · ( Σ_y y·p(y) )
+     = E[x]·E[y]
+
+and therefore cov[x, y] = E[x]·E[y] − E[x]·E[y] = 0. ∎
+
+(Continuous case: the same, with ∬ … dx dy in place of the double sum.)
+
+### Review notes (professor)
+
+Correct, first attempt. He remembered the result E[xy] = E[x]E[y] but not why. After a pointer to
+the definitions, he derived it himself.
+
+1. The split of the double sum into a product is one jump on the page. The reason is that inside
+   the inner sum over y, the factor x·p(x) doesn't depend on y, so it comes out:
+   Σ_x x·p(x) · (Σ_y y·p(y)), and the bracket is then a constant E[y] for the outer sum. Say so.
+2. The page writes E_{xy}[x, y] (with a comma). It's the expectation of the product xy.
+
+Worth knowing: the converse is **false**. Zero covariance doesn't imply independence. Example:
+x uniform on {−1, 0, 1} and y = x². Then y is completely determined by x, yet
+cov = E[x³] − E[x]·E[x²] = 0 − 0 = 0. Covariance only sees linear dependence.
+
+In practice: this is the gap between decorrelating and making independent. PCA (Ch. 12) only
+removes correlation; ICA goes further and looks for independent components.
