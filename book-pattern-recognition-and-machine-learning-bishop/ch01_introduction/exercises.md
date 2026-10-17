@@ -6,6 +6,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 
 - 1.1 (30.09.2026)
 - 1.3 (14.10.2026)
+- 1.4 (17.10.2026)
 
 ---
 
@@ -154,3 +155,78 @@ Method correct throughout: sum rule, product rule, Bayes. Points from the pages:
 In practice: p(g|o) is a posterior over a hidden cause (which box) given an observation (which
 fruit). The same computation shows up in naive Bayes classifiers and in the E-step of a mixture
 model (PRML Ch. 9).
+
+---
+
+## Exercise 1.4 (\*\*) www
+
+> Consider a probability density p_x(x) defined over a continuous variable x, and suppose that we
+> make a nonlinear change of variable using x = g(y), so that the density transforms according to
+> (1.27). By differentiating (1.27), show that the location ŷ of the maximum of the density in y
+> is not in general related to the location x̂ of the maximum of the density over x by the simple
+> functional relation x̂ = g(ŷ) as a consequence of the Jacobian factor. This shows that the
+> maximum of a probability density (in contrast to a simple function) is dependent on the choice
+> of variable. Verify that, in the case of a linear transformation, the location of the maximum
+> transforms in the same way as the variable itself.
+
+Handwritten original: [`ex-1.4-handwritten.png`](ex-1.4-handwritten.png). Below is a transcription
+of that page.
+
+### Setup
+
+x = g(y), with g invertible (strictly monotonic). That is what (1.27) requires: each x comes from
+exactly one y. Then
+
+p_y(y) = p_x(g(y)) · |g′(y)|
+
+x̂ is the maximum of p_x, so p_x′(x̂) = 0.
+
+### Differentiate (1.27)
+
+Product rule plus chain rule:
+
+d p_y / dy = p_x′(g(y)) · g′(y) · |g′(y)| + p_x(g(y)) · ( |g′(y)| )′
+
+g is monotonic, so g′ has a fixed sign s = ±1, |g′| = s·g′, and ( |g′(y)| )′ = s · g″(y).
+
+### Test the naive guess
+
+Take y\* with g(y\*) = x̂: x̂ carried over by the transformation. The question is whether y\* = ŷ.
+
+p_y′(y\*) = p_x′(x̂) · g′(y\*) · |g′(y\*)| + p_x(x̂) · s · g″(y\*) = p_x(x̂) · s · g″(y\*)
+
+The first term vanishes because p_x′(x̂) = 0. p_x(x̂) > 0: a density integrates to 1, so it's
+positive somewhere, and the maximum is at least that. So **the slope of p_y at y\* is zero only if
+g″(y\*) = 0.**
+
+### Cases
+
+- **Linear, g(y) = a·y + b:** g″ ≡ 0, so y\* is stationary. In fact
+  p_y(y) = |a| · p_x(a·y + b) is a shifted, rescaled copy of p_x, so its peak sits exactly at
+  a·ŷ + b = x̂. The maximum transforms like the variable.
+- **Nonlinear, e.g. g(y) = eʸ:** g″ = eʸ > 0 for every real y (it only tends to 0 as y → −∞). So
+  p_y′(y\*) ≠ 0, and y\* is not the maximum: ŷ ≠ g⁻¹(x̂).
+
+**Conclusion.** The relation x̂ = g(ŷ) holds only when g″(y\*) = 0. That's always true for linear
+g and generally false for nonlinear g. The cause is the Jacobian factor |g′(y)|: its derivative
+produces the g″ term. So the maximum of a density depends on the choice of variable. ∎
+
+### Review notes (professor)
+
+1. The page writes ( |g′(y)| )′ as |g″(y)|. That's wrong in general: with g(y) = y³/3 + y,
+   ( |g′| )′ = 2y but |g″| = 2|y|. The correct form is s·g″(y). Here it doesn't change the
+   conclusion, because only whether the term is zero matters.
+2. The page's last line, "g nonlinear ⇒ g″ ≠ 0 ⇒ y\* ≠ ŷ", overstates it. A nonlinear g can have
+   g″ = 0 at isolated points: g(y) = y³ + y has g″(0) = 0. The claim is "not *in general*", and
+   one counterexample (eʸ) is enough to prove that. The conclusion above is the corrected
+   statement, and this doubt was his own.
+3. The page writes the naive point as ŷ before it's known to be the maximum. The write-up names it
+   y\* and asks whether y\* = ŷ.
+4. The monotonicity of g was an unstated assumption. It's now explicit (needed for (1.27)).
+
+Open bonus: for an ordinary function f with h(y) = f(g(y)), show h′(y\*) = f′(x̂)·g′(y\*) = 0. The
+maximum moves with the variable, because there's no Jacobian.
+
+In practice: MAP estimates depend on parameterisation (maximising over σ² vs log σ gives different
+answers) for exactly this reason. Normalizing flows train on the same formula: their
+log-det-Jacobian term is log |g′|.
