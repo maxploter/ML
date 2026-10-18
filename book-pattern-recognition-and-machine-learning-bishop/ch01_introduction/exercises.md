@@ -9,6 +9,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.4 (17.10.2026)
 - 1.5 (17.10.2026)
 - 1.6 (17.10.2026)
+- 1.7 (18.10.2026)
 
 ---
 
@@ -310,3 +311,87 @@ cov = E[x³] − E[x]·E[x²] = 0 − 0 = 0. Covariance only sees linear depende
 
 In practice: this is the gap between decorrelating and making independent. PCA (Ch. 12) only
 removes correlation; ICA goes further and looks for independent components.
+
+---
+
+## Exercise 1.7 (\*\*) www
+
+> In this exercise, we prove the normalization condition (1.48) for the univariate Gaussian. To do
+> this consider the integral
+>
+> I = ∫₋∞^∞ exp(−x²/2σ²) dx   (1.124)
+>
+> which we can evaluate by first writing its square in the form
+>
+> I² = ∫₋∞^∞ ∫₋∞^∞ exp(−x²/2σ² − y²/2σ²) dx dy.   (1.125)
+>
+> Now make the transformation from Cartesian coordinates (x, y) to polar coordinates (r, θ) and
+> then substitute u = r². Show that, by performing the integrals over θ and u, and then taking the
+> square root of both sides, we obtain
+>
+> I = (2πσ²)^{1/2}.   (1.126)
+>
+> Finally, use this result to show that the Gaussian distribution N(x|μ, σ²) is normalized.
+
+Handwritten original, three pages: [`ex-1.7-handwritten-1.png`](ex-1.7-handwritten-1.png) (polar
+setup), [`ex-1.7-handwritten-2.png`](ex-1.7-handwritten-2.png) (the u-integral),
+[`ex-1.7-handwritten-3.png`](ex-1.7-handwritten-3.png) (normalisation of N). Below is a
+transcription.
+
+### What I is
+
+I is the area under the **unnormalised** bell exp(−x²/2σ²): one number, not a function of x, and
+not a CDF. The Gaussian's front factor is 1/I, so the exercise is "where does 1/√(2πσ²) come
+from?". exp(−x²) has no elementary antiderivative, which is why I is computed via I².
+
+### Computing I
+
+I² is the product of two copies of I; the integration variable is a dummy, so the second copy is
+written in y, and e^a·e^b = e^(a+b) merges them into (1.125).
+
+Polar coordinates x = r cosθ, y = r sinθ:
+- exponent: −(r²cos²θ + r²sin²θ)/2σ² = −r²/2σ², since cos²θ + sin²θ = 1
+- area element: dx dy = r dr dθ (a small polar "rectangle" has sides dr and r dθ)
+- limits: r from 0 to ∞, θ from 0 to 2π
+
+I² = ∫₀^{2π} ∫₀^∞ exp(−r²/2σ²) r dr dθ
+
+u = r², du = 2r dr, so r dr = du/2:
+
+I² = ∫₀^{2π} ∫₀^∞ exp(−u/2σ²) · ½ du dθ
+
+Inner integral, with v = −u/2σ², dv = −du/2σ², i.e. du = −2σ² dv:
+
+∫₀^∞ exp(−u/2σ²) du = [−2σ² exp(−u/2σ²)]₀^∞ = −2σ²(0 − 1) = 2σ²
+
+So I² = 2π · ½ · 2σ² = 2πσ², and I = (2πσ²)^{1/2}. ∎ (1.126)
+
+### N(x|μ, σ²) is normalised
+
+∫₋∞^∞ N(x|μ, σ²) dx = (1/√(2πσ²)) ∫₋∞^∞ exp(−(x−μ)²/2σ²) dx
+
+z = x − μ, dz = dx, limits stay ±∞:
+
+= (1/√(2πσ²)) ∫₋∞^∞ exp(−z²/2σ²) dz = (1/√(2πσ²)) · I = 1. ∎
+
+### Review notes (professor)
+
+Solved, **heavily guided** (no answer handed over, but most steps needed a hint). The idea is now
+his: square the integral, go polar, and the Jacobian's r is what makes u = r² work.
+
+1. Calculus technique is the real gap, not the probability. He needed help with: dx dy → r dr dθ
+   (first tried d(r cosθ)·d(r sinθ)); the antiderivative of e^(ku) (first wrote ½e^(−u/2σ²),
+   missing the 1/k); limits after substitution (first used u from −∞, which made exp blow up; he
+   noticed "something odd" himself, which was the right reaction); and carrying all factors (he
+   dropped ½ and the θ integral, and lost the π).
+2. In the last part he first substituted the whole exponent, u = −(x−μ)²/2σ², and was left with a
+   stray (x−μ). That's exactly the wall that makes the 1-D integral impossible, and the reason for
+   the I² trick: in 1-D there's no Jacobian r to pair with dr. The fix is to shift only, z = x − μ,
+   and *recognise* I instead of computing it.
+3. On the page: write the limits after each substitution, and I = √(2πσ²) with π inside the root
+   (page 3 has "√(2σ²) π?" at the top and "√(2πσ)" without the square under the brace).
+
+In practice: −½ log(2πσ²) in every Gaussian log-likelihood is the log of this 1/I. With a learned
+σ (heteroscedastic regression, VAEs' decoder variance) it's the term that stops σ from running off
+to infinity. The I² / polar trick reappears for the multivariate Gaussian in Ch. 2, where the
+Jacobian becomes a determinant.
