@@ -395,3 +395,46 @@ In practice: −½ log(2πσ²) in every Gaussian log-likelihood is the log of t
 σ (heteroscedastic regression, VAEs' decoder variance) it's the term that stops σ from running off
 to infinity. The I² / polar trick reappears for the multivariate Gaussian in Ch. 2, where the
 Jacobian becomes a determinant.
+
+---
+
+## Exercise 1.8 (\*\*) www (in progress)
+
+> By using a change of variables, verify that the univariate Gaussian distribution given by (1.46)
+> satisfies (1.49). Next, by differentiating both sides of the normalization condition
+>
+> ∫₋∞^∞ N(x|μ, σ²) dx = 1   (1.127)
+>
+> with respect to σ², verify that the Gaussian satisfies (1.50). Finally, show that (1.51) holds.
+
+(1.49): E[x] = μ. (1.50): E[x²] = μ² + σ². (1.51): var[x] = E[x²] − E[x]² = σ².
+
+Handwritten original: [`ex-1.8-handwritten-1.png`](ex-1.8-handwritten-1.png) (part 1). Below is a
+transcription.
+
+### Part 1: E[x] = μ
+
+E[x] = (1/√(2πσ²)) ∫₋∞^∞ exp(−(x−μ)²/2σ²) · x dx
+
+z = x − μ, dz = dx, x = z + μ, limits stay ±∞:
+
+E[x] = (1/√(2πσ²)) [ ∫₋∞^∞ exp(−z²/2σ²) z dz + μ ∫₋∞^∞ exp(−z²/2σ²) dz ]
+
+The second integral is I from Ex. 1.7, √(2πσ²).
+
+The first: k = −z²/2σ², dk = −(z/σ²) dz, so z dz = −σ² dk. k = −z² folds at z = 0, so split
+there: z ∈ (−∞, 0] gives k from −∞ to 0, and z ∈ [0, ∞) gives k from 0 back to −∞:
+
+∫₋∞^∞ exp(−z²/2σ²) z dz = −σ² ( ∫₋∞^0 eᵏ dk + ∫₀^{−∞} eᵏ dk ) = −σ² (1 − 1) = 0
+
+So E[x] = (1/√(2πσ²)) · (0 + μ√(2πσ²)) = μ. ∎
+
+### Review notes (professor), part 1
+
+Correct, guided. He split x = z + μ into two integrals himself. Gaps, all calculus technique again:
+first attached the "by Ex. 1.7" brace to the z-term (the μ-term is the one that is I); needed the
+substitution k = −z²/2σ² that absorbs the z in z dz; asked how limits transform (rule: plug the
+old limits into the substitution). His instinct that a 0 belongs in the new limits was right: the
+substitution isn't monotonic, and splitting at the fold z = 0 is the rigorous way to do it.
+Shortcut to know: z·exp(−z²/2σ²) is odd, so its integral over a symmetric range is 0 without any
+computation.
