@@ -10,6 +10,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.5 (17.10.2026)
 - 1.6 (17.10.2026)
 - 1.7 (18.10.2026)
+- 1.8 (19.10.2026)
 
 ---
 
@@ -398,7 +399,7 @@ Jacobian becomes a determinant.
 
 ---
 
-## Exercise 1.8 (\*\*) www (in progress)
+## Exercise 1.8 (\*\*) www
 
 > By using a change of variables, verify that the univariate Gaussian distribution given by (1.46)
 > satisfies (1.49). Next, by differentiating both sides of the normalization condition
@@ -409,8 +410,8 @@ Jacobian becomes a determinant.
 
 (1.49): E[x] = μ. (1.50): E[x²] = μ² + σ². (1.51): var[x] = E[x²] − E[x]² = σ².
 
-Handwritten original: [`ex-1.8-handwritten-1.png`](ex-1.8-handwritten-1.png) (part 1). Below is a
-transcription.
+Handwritten original, two pages: [`ex-1.8-handwritten-1.png`](ex-1.8-handwritten-1.png) (E[x]) and
+[`ex-1.8-handwritten-2.png`](ex-1.8-handwritten-2.png) (E[x²], var). Below is a transcription.
 
 ### Part 1: E[x] = μ
 
@@ -438,3 +439,45 @@ old limits into the substitution). His instinct that a 0 belongs in the new limi
 substitution isn't monotonic, and splitting at the fold z = 0 is the rigorous way to do it.
 Shortcut to know: z·exp(−z²/2σ²) is odd, so its integral over a symmetric range is 0 without any
 computation.
+
+### Part 2: E[x²] = μ² + σ², by differentiating the normalisation
+
+Move the constant across and write s = σ²:
+
+∫₋∞^∞ exp(−(x−μ)²/2s) dx = (2πs)^{1/2}
+
+This holds for every s, so the derivatives in s of both sides are equal too. The derivative goes
+inside the integral (an integral is a sum; the derivative of a sum is the sum of derivatives):
+
+∫₋∞^∞ exp(−(x−μ)²/2s) · (x−μ)²/2s² dx = ½(2πs)^{−1/2} · 2π = π/√(2πs)
+
+Multiply both sides by 2s²/√(2πs), so that N appears under the integral:
+
+∫₋∞^∞ N(x|μ, σ²) · (x−μ)² dx = 2πs²/(2πs) = s
+
+So E[(x−μ)²] = σ², and since E[x] = μ (part 1) this is var[x] = σ², i.e. (1.51).
+
+With the identity from Ex. 1.5, var[x] = E[x²] − E[x]²:
+
+E[x²] = var[x] + E[x]² = σ² + μ². ∎ (1.50)
+
+### Review notes (professor), part 2
+
+Correct idea, guided. The differentiation step was the hard part conceptually: his first reaction
+was that differentiating inside an integral "sounds almost like a mistake". Resolved with
+"integral = sum, derivative of a sum = sum of derivatives" and the check ∫₀¹ a x dx = a/2 done
+both ways. After that, both derivatives on the page were right first time.
+
+1. First attempt replaced the integral by its value, √(2πσ²) = 1, which is false (true for one σ
+   only). Lesson: the trick only works if the integral stays an integral; otherwise it collapses to
+   1 = 1 and the derivative says 0 = 0.
+2. **Sign slip in the last line:** the page has E[x²] = σ² − μ². From E[x²] − μ² = σ² it is
+   E[x²] = σ² **+** μ². Sanity check: E[x²] ≥ 0 always, but σ² − μ² is negative for μ = 10, σ = 1.
+3. He went from E[(x−μ)²] = σ² to E[x²] via the 1.5 identity rather than expanding the square.
+   That's a fine route, and it reuses a result instead of redoing it.
+4. Notation: N(x|μ, σ²)·(x−μ)², not N((x−μ)²|μ, σ²); and (x−μ)², not (x−μ²) in the exponent.
+
+In practice: differentiating log Z with respect to a parameter to get moments is the standard
+exponential-family result (PRML §2.4): the first derivative of the log-normaliser is E[sufficient
+statistic], the second is its variance. It's why the gradients of logistic regression and softmax
+cross-entropy come out as "prediction minus target".
