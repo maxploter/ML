@@ -12,6 +12,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.7 (18.10.2026)
 - 1.8 (19.10.2026)
 - 1.10 (20.10.2026)
+- 1.11 (20.10.2026)
 
 Skipped, plan correct: 1.9 (mode of the Gaussian: dN/dx = 0 gives x = μ).
 
@@ -536,3 +537,44 @@ In practice: this is why averaging N independent noisy estimates divides the var
 (var of the mean is σ²/N), the basis of ensembles, bagging and minibatch gradient noise. When the
 estimates are correlated the 2cov term stays, which is why bagged trees are decorrelated by
 feature subsampling (random forests).
+
+---
+
+## Exercise 1.11 (\*)
+
+> By setting the derivatives of the log likelihood function (1.54) with respect to μ and σ² equal
+> to zero, verify the results (1.55) and (1.56).
+
+Handwritten original: [`ex-1.11-handwritten.png`](ex-1.11-handwritten.png). Below is a
+transcription.
+
+### Solution
+
+The N points are independent, so the likelihood is a product over n and its log is a sum:
+
+ln p(**x**|μ, σ²) = −(1/2σ²) Σₙ (xₙ − μ)² − (N/2) ln σ² − (N/2) ln 2π   (1.54)
+
+**μ:** ∂/∂μ = (1/σ²) Σₙ (xₙ − μ) = 0 ⇒ Σₙ xₙ − Nμ = 0 ⇒ μ_ML = (1/N) Σₙ xₙ   (1.55)
+
+**σ²:** ∂/∂σ² = (1/2σ⁴) Σₙ (xₙ − μ)² − N/2σ² = 0. Multiply by 2σ⁴ (σ² ≠ 0):
+
+σ²_ML = (1/N) Σₙ (xₙ − μ_ML)²   (1.56) ∎
+
+### Review notes (professor)
+
+Correct, independently, first attempt. Differentiating with respect to σ² as a single variable
+was done right.
+
+1. Say why μ_ML can be plugged into (1.56): the μ equation doesn't involve σ², so it is solved
+   first, on its own.
+2. Write the intermediate step Σxₙ − Nμ = 0, and name the results μ_ML, σ²_ML. On the page they
+   are just μ and σ², which blurs "parameter" vs "estimate".
+3. Not asked, but worth one line: it's a maximum, not a minimum. ∂²/∂μ² = −N/σ² < 0.
+
+Before this he asked why a joint of independent variables is a product when ∫p(x) + ∫p(z) = 2.
+Resolved: the joint lives on the space of pairs, ∬p(x)p(z) dx dz = 1·1 = 1; probabilities add
+only for mutually exclusive outcomes of one variable.
+
+In practice: the μ part is exactly why minimising MSE = maximum likelihood under Gaussian noise
+(§1.2.5). σ²_ML divides by N and is biased low (that's Ex. 1.12); this is numpy's `np.var`
+default (`ddof=0`) vs the unbiased `ddof=1`, and pandas' `.var()` which defaults to `ddof=1`.
