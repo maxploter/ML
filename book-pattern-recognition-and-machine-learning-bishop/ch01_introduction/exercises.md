@@ -11,6 +11,9 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.6 (17.10.2026)
 - 1.7 (18.10.2026)
 - 1.8 (19.10.2026)
+- 1.10 (20.10.2026)
+
+Skipped, plan correct: 1.9 (mode of the Gaussian: dN/dx = 0 gives x = μ).
 
 ---
 
@@ -481,3 +484,55 @@ In practice: differentiating log Z with respect to a parameter to get moments is
 exponential-family result (PRML §2.4): the first derivative of the log-normaliser is E[sufficient
 statistic], the second is its variance. It's why the gradients of logistic regression and softmax
 cross-entropy come out as "prediction minus target".
+
+---
+
+## Exercise 1.10 (\*)
+
+> Suppose that the two variables x and z are statistically independent. Show that the mean and
+> variance of their sum satisfies
+>
+> E[x + z] = E[x] + E[z]   (1.128)
+>
+> var[x + z] = var[x] + var[z].   (1.129)
+
+Handwritten original, two pages: [`ex-1.10-handwritten-1.png`](ex-1.10-handwritten-1.png) (mean) and
+[`ex-1.10-handwritten-2.png`](ex-1.10-handwritten-2.png) (variance; written with y instead of z).
+Below is a transcription.
+
+### Mean
+
+E[x + z] = Σ_x Σ_z (x + z) · p(x, z), with p(x, z) = p(x)·p(z)
+
+= Σ_z p(z) · Σ_x x·p(x) + Σ_z z·p(z) · Σ_x p(x) = 1·E[x] + E[z]·1 = E[x] + E[z]. ∎
+
+### Variance
+
+var[x + z] = E[(x + z)²] − (E[x + z])²
+
+= E[x²] + 2E[xz] + E[z²] − E[x]² − 2E[x]E[z] − E[z]²
+
+Independence gives E[xz] = E[x]E[z] (Ex. 1.6), so the cross terms cancel:
+
+= (E[x²] − E[x]²) + (E[z²] − E[z]²) = var[x] + var[z]. ∎
+
+### Review notes (professor)
+
+Correct. One misconception cleared before starting: he first guessed the weight would be
+p(x) + p(z) because independent variables "don't overlap". That confuses independence (joint
+factorises, p(x, z) = p(x)p(z)) with mutual exclusivity (probabilities of disjoint events add).
+Two exclusive events of non-zero probability are in fact dependent.
+
+1. He asked whether Σ_z p(z) = 1 needs independence. It doesn't: it's the normalisation of z's
+   own distribution.
+2. He asked why the joint p(x, z) is the weight both for x + z and for xz. Because
+   E[f(x, z)] = ΣΣ f(x, z) p(x, z) for any f: f is what is averaged, p is how often each outcome
+   happens.
+3. Worth knowing: (1.128) holds **without** independence (sum rule: Σ_z p(x, z) = p(x)). Only
+   (1.129) needs it, and only via E[xz] = E[x]E[z]. In general
+   var[x + z] = var[x] + var[z] + 2cov[x, z].
+
+In practice: this is why averaging N independent noisy estimates divides the variance by N
+(var of the mean is σ²/N), the basis of ensembles, bagging and minibatch gradient noise. When the
+estimates are correlated the 2cov term stays, which is why bagged trees are decorrelated by
+feature subsampling (random forests).
