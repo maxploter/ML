@@ -578,3 +578,44 @@ only for mutually exclusive outcomes of one variable.
 In practice: the μ part is exactly why minimising MSE = maximum likelihood under Gaussian noise
 (§1.2.5). σ²_ML divides by N and is biased low (that's Ex. 1.12); this is numpy's `np.var`
 default (`ddof=0`) vs the unbiased `ddof=1`, and pandas' `.var()` which defaults to `ddof=1`.
+
+---
+
+## Exercise 1.12 (\*\*) www (in progress)
+
+> Using the results (1.49) and (1.50), show that
+>
+> E[xₙxₘ] = μ² + Iₙₘσ²   (1.130)
+>
+> where xₙ and xₘ denote data points sampled from a Gaussian distribution with mean μ and
+> variance σ², and Iₙₘ satisfies Iₙₘ = 1 if n = m and Iₙₘ = 0 otherwise. Hence prove the results
+> (1.57) and (1.58).
+
+(1.57): E[μ_ML] = μ. (1.58): E[σ²_ML] = ((N−1)/N)·σ².
+
+Handwritten original, so far: [`ex-1.12-handwritten-1.png`](ex-1.12-handwritten-1.png) (setup),
+[`ex-1.12-handwritten-2.png`](ex-1.12-handwritten-2.png) (E[μ_ML]). Below is a transcription.
+
+### What is being averaged
+
+μ_ML is computed from a random data set **X** = (x₁, …, x_N), so it's itself a random variable;
+E[μ_ML] is its average over all data sets (Figure 1.15). The density of a data set is the product
+(independence), so
+
+E[μ_ML] = ∫ μ_ML(**X**) · ∏ₙ N(xₙ|μ, σ²) d**X**,  d**X** = dx₁…dx_N.
+
+### Part (1.57): E[μ_ML] = μ
+
+N = 2 first: E[μ_ML] = ∬ ½(x₁ + x₂) p(x₁)p(x₂) dx₁dx₂ = ½ E[x₁ + x₂].
+
+General N, by linearity (Ex. 1.10): E[μ_ML] = (1/N) E[Σₙ xₙ] = (1/N) Σₙ E[xₙ] = (N/N)·μ = μ,
+since each xₙ ~ N(μ, σ²) has E[xₙ] = μ (Ex. 1.8). ∎
+
+### Review notes (professor), part (1.57)
+
+Guided. The conceptual step was the hard one: "the expectation of μ_ML over what?". He got there
+himself ("we iterate datasets"), then wrote the N-fold integral over **X** with the product
+density correctly. Slips: first replaced ½E[x₁ + x₂] with ½(μ² + I₁₂σ²), mixing up the sum with
+the product E[xₙxₘ] (the comma in "E[x₁, x₂]" hid it; a units check catches it: μ² is in x²).
+Also asked why E[xₙ] = μ: "mean" is overloaded (parameter μ vs sample mean μ_ML).
+His crossed-out ∫p(μ|x)μ dμ is the Bayesian view (μ random, data fixed); here it's the reverse.
