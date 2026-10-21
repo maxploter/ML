@@ -13,6 +13,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.8 (19.10.2026)
 - 1.10 (20.10.2026)
 - 1.11 (20.10.2026)
+- 1.12 (21.10.2026)
 
 Skipped, plan correct: 1.9 (mode of the Gaussian: dN/dx = 0 gives x = μ).
 
@@ -581,7 +582,7 @@ default (`ddof=0`) vs the unbiased `ddof=1`, and pandas' `.var()` which defaults
 
 ---
 
-## Exercise 1.12 (\*\*) www (in progress)
+## Exercise 1.12 (\*\*) www
 
 > Using the results (1.49) and (1.50), show that
 >
@@ -593,8 +594,10 @@ default (`ddof=0`) vs the unbiased `ddof=1`, and pandas' `.var()` which defaults
 
 (1.57): E[μ_ML] = μ. (1.58): E[σ²_ML] = ((N−1)/N)·σ².
 
-Handwritten original, so far: [`ex-1.12-handwritten-1.png`](ex-1.12-handwritten-1.png) (setup),
-[`ex-1.12-handwritten-2.png`](ex-1.12-handwritten-2.png) (E[μ_ML]). Below is a transcription.
+Handwritten original: [`ex-1.12-handwritten-1.png`](ex-1.12-handwritten-1.png) (setup),
+[`ex-1.12-handwritten-2.png`](ex-1.12-handwritten-2.png) (E[μ_ML]),
+[`ex-1.12-handwritten-3.png`](ex-1.12-handwritten-3.png) and
+[`ex-1.12-handwritten-4.png`](ex-1.12-handwritten-4.png) (E[σ²_ML]). Below is a transcription.
 
 ### What is being averaged
 
@@ -619,3 +622,45 @@ density correctly. Slips: first replaced ½E[x₁ + x₂] with ½(μ² + I₁₂
 the product E[xₙxₘ] (the comma in "E[x₁, x₂]" hid it; a units check catches it: μ² is in x²).
 Also asked why E[xₙ] = μ: "mean" is overloaded (parameter μ vs sample mean μ_ML).
 His crossed-out ∫p(μ|x)μ dμ is the Bayesian view (μ random, data fixed); here it's the reverse.
+
+### Part (1.58): E[σ²_ML] = ((N−1)/N)σ²
+
+σ²_ML = (1/N) Σₙ (xₙ − μ_ML)², with μ_ML = (1/N) Σₘ xₘ: the **sample** mean, not μ. Expand the
+square and take the expectation over **X** (same integral as above, linearity of E):
+
+E[σ²_ML] = (1/N) ( Σₙ E[xₙ²] − 2 Σₙ E[xₙ μ_ML] + N·E[μ_ML²] ).
+
+μ_ML depends on **X**, so it stays inside E and is expanded:
+
+- E[xₙ μ_ML] = (1/N) Σₘ E[xₙxₘ]
+- μ_ML² = (1/N²) Σₙ Σₘ xₙxₘ (squaring a sum gives every pair, hence two indices), so
+  N·E[μ_ML²] = (1/N) Σₙ Σₘ E[xₙxₘ]
+
+The second and third terms carry the same double sum, −2/N + 1/N = −1/N:
+
+E[σ²_ML] = (1/N) ( Σₙ E[xₙ²] − (1/N) Σₙ Σₘ (μ² + Iₙₘσ²) )   by (1.130)
+
+Count: Σₙ Σₘ μ² = N²μ²; Iₙₘ is non-zero on the N diagonal pairs only, Σₙ Σₘ Iₙₘσ² = Nσ².
+With E[xₙ²] = μ² + σ² (Ex. 1.8):
+
+E[σ²_ML] = (1/N) ( Nμ² + Nσ² − Nμ² − σ² ) = ((N−1)/N) σ². ∎
+
+(1.130) itself: for n ≠ m, independence factorises the integral, E[xₙxₘ] = E[xₙ]E[xₘ] = μ²
+(Ex. 1.10); for n = m it's E[xₙ²] = μ² + σ² (Ex. 1.8).
+
+Cleaner route (shown afterwards): Σₙ(xₙ − μ_ML)² = Σₙ(xₙ − μ)² − N(μ_ML − μ)², so
+E[σ²_ML] = (1/N)(Nσ² − N·var[μ_ML]) = (1/N)(Nσ² − σ²), using var[μ_ML] = σ²/N (Ex. 1.10).
+
+### Review notes (professor), part (1.58)
+
+Guided, finished himself. Main error at the start: used the true μ inside σ²_ML; with μ the
+estimator is exactly unbiased, so the whole bias comes from replacing μ by μ_ML. Then pulled
+μ_ML out of the integral as a constant (caught and crossed out himself). Third term: lost the
+square, then the factor N from Σₙ μ_ML², and wrote a single sum where squaring needs a double
+one. Final arithmetic: the minus wasn't distributed over σ². Good question on the way: "μ_ML
+depends on xₘ but the product is over p(xₙ)": n in ∏ₙ is a dummy index, the product is the
+density of the whole data set, every xₘ is in it.
+
+In practice: fitting the mean to the same points makes them look closer than they are; the
+shortfall is exactly var[μ_ML] = σ²/N. That is train error < test error in miniature, and why
+unbiased variance divides by N − 1 (`np.var(x, ddof=1)`, pandas default).
