@@ -15,7 +15,8 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.11 (20.10.2026)
 - 1.12 (21.10.2026)
 
-Skipped, plan correct: 1.9 (mode of the Gaussian: dN/dx = 0 gives x = μ).
+Skipped, plan correct: 1.9 (mode of the Gaussian: dN/dx = 0 gives x = μ); 1.13 (variance
+estimate around the true μ is unbiased: (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12).
 
 ---
 
