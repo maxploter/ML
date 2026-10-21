@@ -14,7 +14,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.10 (20.10.2026)
 - 1.11 (20.10.2026)
 - 1.12 (21.10.2026)
-- 1.14 (21.10.2026, core part; parameter count skipped)
+- 1.14 (21.10.2026)
 
 Skipped, plan correct: 1.9 (mode of the Gaussian: dN/dx = 0 gives x = μ); 1.13 (variance
 estimate around the true μ is unbiased: (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12).
@@ -712,7 +712,13 @@ Antisymmetric diagonal is zero (Aᵢᵢ = −Aᵢᵢ).
 The second sum has the same terms as the first in a different order (rename the dummy indices
 i ↔ j, xⱼxᵢ = xᵢxⱼ; summing by rows vs by columns), so the total is Σᵢ Σⱼ wᵢⱼxᵢxⱼ. ∎
 
-Part 3 (count D(D + 1)/2) skipped by choice, along with 1.15/1.16 (combinatorics, not reused).
+Alternative: write wᵢⱼ = wᵢⱼˢ + wᵢⱼᴬ in (1.132); the wᴬ part sums to zero.
+
+### Part 3: D(D + 1)/2 independent parameters
+
+Independent = free to choose; the rest are then forced. In wˢ, choosing wᵢⱼ fixes wⱼᵢ, so only
+the diagonal and one triangle are free: D + (D² − D)/2 = D²/2 + D/2 = D(D + 1)/2.
+(D = 3: 3 + 3 = 6.) 1.15/1.16 (higher orders, combinatorics) skipped by choice.
 
 ### Review notes (professor)
 
