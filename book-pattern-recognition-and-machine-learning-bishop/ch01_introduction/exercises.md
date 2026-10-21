@@ -665,3 +665,13 @@ density of the whole data set, every xₘ is in it.
 In practice: fitting the mean to the same points makes them look closer than they are; the
 shortfall is exactly var[μ_ML] = σ²/N. That is train error < test error in miniature, and why
 unbiased variance divides by N − 1 (`np.var(x, ddof=1)`, pandas default).
+
+## Exercise 1.13 (\*) (skipped, plan correct)
+
+> Suppose that the variance of a Gaussian is estimated using the result (1.56) but with the
+> maximum likelihood estimate μ_ML replaced with the true value μ of the mean. Show that this
+> estimator has the property that its expectation is given by the true variance σ².
+
+Plan: same start as 1.12 (E over data sets, linearity), but with the true μ nothing depends on
+**X** except xₙ: (1/N)Σₙ E[(xₙ − μ)²] = (1/N)·Nσ² = σ². To practise: expand the square and use
+E[xₙ²] = μ² + σ², E[xₙ] = μ. Compare with 1.12: the bias comes only from using μ_ML.
