@@ -14,6 +14,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.10 (20.10.2026)
 - 1.11 (20.10.2026)
 - 1.12 (21.10.2026)
+- 1.14 (21.10.2026, core part; parameter count skipped)
 
 Skipped, plan correct: 1.9 (mode of the Gaussian: dN/dx = 0 gives x = μ); 1.13 (variance
 estimate around the true μ is unbiased: (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12).
@@ -675,3 +676,50 @@ unbiased variance divides by N − 1 (`np.var(x, ddof=1)`, pandas default).
 Plan: same start as 1.12 (E over data sets, linearity), but with the true μ nothing depends on
 **X** except xₙ: (1/N)Σₙ E[(xₙ − μ)²] = (1/N)·Nσ² = σ². To practise: expand the square and use
 E[xₙ²] = μ² + σ², E[xₙ] = μ. Compare with 1.12: the bias comes only from using μ_ML.
+
+## Exercise 1.14 (\*\*)
+
+> Show that an arbitrary square matrix with elements wᵢⱼ can be written in the form
+> wᵢⱼ = wᵢⱼˢ + wᵢⱼᴬ (1.131) where wˢ and wᴬ are symmetric and anti-symmetric matrices,
+> respectively, satisfying wᵢⱼˢ = wⱼᵢˢ and wᵢⱼᴬ = −wⱼᵢᴬ for all i and j. Now consider the
+> second order term in a higher order polynomial in D dimensions, given by
+> Σᵢ Σⱼ wᵢⱼxᵢxⱼ (1.132). Show that Σᵢ Σⱼ wᵢⱼxᵢxⱼ = Σᵢ Σⱼ wᵢⱼˢxᵢxⱼ (1.133) so that the
+> contribution from the anti-symmetric matrix vanishes. We therefore see that, without loss of
+> generality, the matrix of coefficients wᵢⱼ can be chosen to be symmetric, and so not all of
+> the D² elements of this matrix can be chosen independently. Show that the number of
+> independent parameters in the matrix wᵢⱼˢ is given by D(D + 1)/2.
+
+Context: §1.4 (curse of dimensionality), polynomial (1.74) in D inputs x₁…x_D. "Second order"
+= products of two inputs (degree, not position in the line).
+
+Handwritten original: [`ex-1.14-handwritten.png`](ex-1.14-handwritten.png).
+
+### Part 1: decomposition
+
+Found from an example (w₁₂ = 5, w₂₁ = 1): sum 6 is unchanged by the swap, difference 4 flips
+sign, but 6 + 4 ≠ 5, so halve both:
+
+wᵢⱼˢ = (wᵢⱼ + wⱼᵢ)/2,  wᵢⱼᴬ = (wᵢⱼ − wⱼᵢ)/2.
+
+Checks: the sum is wᵢⱼ (the wⱼᵢ cancel); swapping i, j leaves wˢ unchanged and flips wᴬ.
+Works for any entries, so for any square matrix. Matrix form: S = (W + Wᵀ)/2, A = (W − Wᵀ)/2.
+Antisymmetric diagonal is zero (Aᵢᵢ = −Aᵢᵢ).
+
+### Part 2: (1.133)
+
+Σᵢ Σⱼ wᵢⱼˢxᵢxⱼ = ½ Σᵢ Σⱼ wᵢⱼxᵢxⱼ + ½ Σᵢ Σⱼ wⱼᵢxᵢxⱼ.
+
+The second sum has the same terms as the first in a different order (rename the dummy indices
+i ↔ j, xⱼxᵢ = xᵢxⱼ; summing by rows vs by columns), so the total is Σᵢ Σⱼ wᵢⱼxᵢxⱼ. ∎
+
+Part 3 (count D(D + 1)/2) skipped by choice, along with 1.15/1.16 (combinatorics, not reused).
+
+### Review notes (professor)
+
+Guided, with the key steps his own: the sum/difference from the 5-and-1 example, the /2, the
+fold-along-the-diagonal picture, and "summing by rows or by columns gives the same". Took the
+direct route for part 2 (substitute wˢ) instead of showing the A part vanishes; both are fine.
+Confusion on the way: "second order" read as "third term in the line".
+
+In practice: a quadratic form xᵀWx only sees the symmetric part of W. This is why §2.3 can take
+the covariance Σ (and Σ⁻¹ in (x − μ)ᵀΣ⁻¹(x − μ)) symmetric without loss of generality.
