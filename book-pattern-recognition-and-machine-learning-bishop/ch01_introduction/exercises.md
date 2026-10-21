@@ -15,6 +15,10 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.11 (20.10.2026)
 - 1.12 (21.10.2026)
 - 1.14 (21.10.2026)
+- 1.17 (21.10.2026)
+
+Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
+D^M message is in §1.4).
 
 Skipped, plan correct: 1.9 (mode of the Gaussian: dN/dx = 0 gives x = μ); 1.13 (variance
 estimate around the true μ is unbiased: (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12).
@@ -729,3 +733,38 @@ Confusion on the way: "second order" read as "third term in the line".
 
 In practice: a quadratic form xᵀWx only sees the symmetric part of W. This is why §2.3 can take
 the covariance Σ (and Σ⁻¹ in (x − μ)ᵀΣ⁻¹(x − μ)) symmetric without loss of generality.
+
+## Exercise 1.17 (\*\*) www
+
+> The gamma function is defined by Γ(x) ≡ ∫₀^∞ u^(x−1) e^(−u) du (1.141). Using integration by
+> parts, prove the relation Γ(x + 1) = xΓ(x) (1.142). Show also that Γ(1) = 1 and hence that
+> Γ(x + 1) = x! when x is an integer.
+
+Handwritten original: [`ex-1.17-handwritten.png`](ex-1.17-handwritten.png) (headed "Ex 1.7" by
+slip).
+
+Integration by parts, ∫ f dv = f·v − ∫ v df (product rule read backwards), on Γ(x) itself:
+f = u^(x−1), df = (x−1)u^(x−2) du; dv = e^(−u) du, v = −e^(−u).
+
+Γ(x) = [−u^(x−1)e^(−u)]₀^∞ + (x−1) ∫₀^∞ u^(x−2) e^(−u) du = 0 + (x−1)Γ(x−1).
+
+Bracket: at ∞ the limit u^(x−1)/e^u → 0 (exponential beats any power); at 0 it is 0 (x > 1).
+With y = x − 1: Γ(y + 1) = yΓ(y). ∎ (1.142)
+
+Γ(1) = ∫₀^∞ e^(−u) du = [−e^(−u)]₀^∞ = 0 − (−1) = 1.
+
+Integer x: Γ(x + 1) = x·Γ(x) = x(x−1)Γ(x−1) = … = x(x−1)…1·Γ(1) = x!. ∎
+
+### Review notes (professor)
+
+Integration by parts was new: learned it mid-exercise from
+[mathprofi](https://mathprofi.ru/integrirovanie_po_chastyam.html) after my explanations didn't
+land (f·g' notation confused him; mathprofi's ∫u dv with differentials worked). Then applied it
+correctly on his own, on Γ(x) rather than Γ(x+1), and recognised the leftover integral as
+Γ(x−1). Slips: plugged ∞ in as a number (∞^(x−1)·e^(−∞)) instead of taking a limit; dropped the
+minus in the boundary term (harmless, it is 0). Asked the right question: differential vs
+derivative (df = f'dx).
+
+In practice: Γ normalises the beta, gamma, Dirichlet and Student-t distributions (Ch. 2);
+Γ(x+1) = xΓ(x) is the step that gives their means and variances. Next, 1.18 uses Γ for the
+volume of a D-dimensional sphere (curse of dimensionality).
