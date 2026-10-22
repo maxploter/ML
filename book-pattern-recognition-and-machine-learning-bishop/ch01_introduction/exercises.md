@@ -16,6 +16,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.12 (21.10.2026)
 - 1.14 (21.10.2026)
 - 1.17 (21.10.2026)
+- 1.18 (22.10.2026)
 
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
 D^M message is in §1.4)).
@@ -769,7 +770,7 @@ In practice: Γ normalises the beta, gamma, Dirichlet and Student-t distribution
 Γ(x+1) = xΓ(x) is the step that gives their means and variances. Next, 1.18 uses Γ for the
 volume of a D-dimensional sphere (curse of dimensionality).
 
-## Exercise 1.18 (\*\*) www (in progress)
+## Exercise 1.18 (\*\*) www
 
 > We can use the result (1.126) to derive an expression for the surface area S_D, and the
 > volume V_D, of a sphere of unit radius in D dimensions. To do this, consider the following
@@ -803,16 +804,26 @@ Denominator: u = r², du = 2r dr, limits stay 0..∞; r^(D−1)/(2r) = ½u^((D�
 
 S_D = 2π^(D/2)/Γ(D/2). ∎ (1.143)
 
-### Next
+### Part 2: V_D = S_D/D
 
-- V_D = ∫₀¹ S_D r^(D−1) dr (function 1 instead of e^(−r²), shells up to radius 1). The page
-  has ∫₀¹ S_D dr: r^(D−1) missing.
-- Check D = 2, 3 with Γ(1) = 1, Γ(3/2) = √π/2, Γ(2) = 1.
+Volume = sum of thin shells (2D: rings, ∫₀¹ 2πr dr = π; 3D: ∫₀¹ 4πr² dr = 4π/3). Shell area at
+radius r is S_D r^(D−1): the sphere's surface has D−1 directions (the D−1 angles), and stretching
+a k-dimensional piece by r multiplies its size by r^k. So
 
-### Review notes (professor), so far
+V_D = ∫₀¹ S_D r^(D−1) dr = S_D [r^D/D]₀¹ = S_D/D. ∎ (1.144)
+
+(The page has ∫₀¹ S_D dr with r^(D−1) missing; the last line was given as a hint.)
+D = 2/3 check (Γ(1) = 1, Γ(3/2) = √π/2) not done: plugging in.
+
+### Review notes (professor)
 
 His own: the substitution u = r², dr = du/2r, the exponent bookkeeping, matching to Γ. Stuck
 points: where e^(−x²) comes from (chosen, = 1.7 with σ² = ½; "no need to integrate again");
 "unit radius" and why S_D is a constant while the area depends on r (dummy variables integrated
 away; 2π in 1.7's 2πr dr). My explanations were tangled here; the 1.7 ring analogy was what
 worked.
+
+In practice: the r^(D−1) shell factor is what 1.20 is about. For a D-dim Gaussian,
+p(r) ∝ S_D r^(D−1) e^(−r²/2σ²): the shell volume beats the density, mass sits at r ≈ √D σ, not
+near the mean. High-dim data (embeddings) is all roughly equidistant; distance-based methods
+degrade.
