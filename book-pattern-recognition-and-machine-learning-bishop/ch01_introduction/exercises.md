@@ -783,7 +783,8 @@ volume of a D-dimensional sphere (curse of dimensionality).
 > (1.143) and (1.144) reduce to the usual expressions for D = 2 and D = 3.
 
 Handwritten original: [`ex-1.18-handwritten-1.png`](ex-1.18-handwritten-1.png),
-[`ex-1.18-handwritten-2.png`](ex-1.18-handwritten-2.png).
+[`ex-1.18-handwritten-2.png`](ex-1.18-handwritten-2.png),
+[`ex-1.18-handwritten-3.png`](ex-1.18-handwritten-3.png) (V_D, D = 2/3).
 
 ### Reading (1.142)
 
@@ -812,8 +813,12 @@ a k-dimensional piece by r multiplies its size by r^k. So
 
 V_D = ∫₀¹ S_D r^(D−1) dr = S_D [r^D/D]₀¹ = S_D/D. ∎ (1.144)
 
-(The page has ∫₀¹ S_D dr with r^(D−1) missing; the last line was given as a hint.)
-D = 2/3 check (Γ(1) = 1, Γ(3/2) = √π/2) not done: plugging in.
+(First attempt had ∫₀¹ S_D dr with r^(D−1) missing; corrected on page 3.)
+
+### Part 3: D = 2, 3
+
+S₂ = 2π/Γ(1) = 2π, V₂ = π (πR²). S₃ = 2π^(3/2)/(√π/2) = 4π, V₃ = 4π/3 ((4/3)πR³).
+Page slip: wrote 4π² (π^(3/2)/π^(1/2) = π¹).
 
 ### Review notes (professor)
 
