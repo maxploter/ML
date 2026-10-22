@@ -18,7 +18,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.17 (21.10.2026)
 
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
-D^M message is in §1.4).
+D^M message is in §1.4); 1.18 (result S_D = 2π^(D/2)/Γ(D/2) taken as given).
 
 Skipped, plan correct: 1.9 (mode of the Gaussian: dN/dx = 0 gives x = μ); 1.13 (variance
 estimate around the true μ is unbiased: (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12).
@@ -768,3 +768,13 @@ derivative (df = f'dx).
 In practice: Γ normalises the beta, gamma, Dirichlet and Student-t distributions (Ch. 2);
 Γ(x+1) = xΓ(x) is the step that gives their means and variances. Next, 1.18 uses Γ for the
 volume of a D-dimensional sphere (curse of dimensionality).
+
+## Exercise 1.18 (\*\*) www (skipped, result used)
+
+Goal: surface area S_D of the unit sphere in D dimensions, then volume V_D = S_D/D.
+
+Plan, to come back to: compute ∫…∫ e^(−r²) dx₁…dx_D two ways and equate.
+1. Cartesian: e^(−r²) = ∏ e^(−xᵢ²), so it is D copies of the 1.7 integral with σ² = ½.
+2. Polar: shells of radius r, volume S_D r^(D−1) dr (2D: ring 2πr dr; 3D: 4πr² dr). The
+   r-integral becomes a Γ (1.17) after a substitution.
+3. Equate, solve for S_D. Result: S_D = 2π^(D/2)/Γ(D/2) (1.143), V_D = S_D/D (1.144).
