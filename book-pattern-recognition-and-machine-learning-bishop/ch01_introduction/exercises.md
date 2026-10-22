@@ -18,7 +18,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.17 (21.10.2026)
 
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
-D^M message is in §1.4); 1.18 (result S_D = 2π^(D/2)/Γ(D/2) taken as given).
+D^M message is in §1.4)).
 
 Skipped, plan correct: 1.9 (mode of the Gaussian: dN/dx = 0 gives x = μ); 1.13 (variance
 estimate around the true μ is unbiased: (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12).
@@ -769,12 +769,50 @@ In practice: Γ normalises the beta, gamma, Dirichlet and Student-t distribution
 Γ(x+1) = xΓ(x) is the step that gives their means and variances. Next, 1.18 uses Γ for the
 volume of a D-dimensional sphere (curse of dimensionality).
 
-## Exercise 1.18 (\*\*) www (skipped, result used)
+## Exercise 1.18 (\*\*) www (in progress)
 
-Goal: surface area S_D of the unit sphere in D dimensions, then volume V_D = S_D/D.
+> We can use the result (1.126) to derive an expression for the surface area S_D, and the
+> volume V_D, of a sphere of unit radius in D dimensions. To do this, consider the following
+> result, which is obtained by transforming from Cartesian to polar coordinates
+> ∏ᵢ₌₁ᴰ ∫₋∞^∞ e^(−xᵢ²) dxᵢ = S_D ∫₀^∞ e^(−r²) r^(D−1) dr. (1.142)
+> Using the definition (1.141) of the Gamma function, together with (1.126), evaluate both sides
+> of this equation, and hence show that S_D = 2π^(D/2)/Γ(D/2) (1.143). Next, by integrating with
+> respect to radius from 0 to 1, show that the volume of the unit sphere in D dimensions is
+> given by V_D = S_D/D (1.144). Finally, use the results Γ(1) = 1 and Γ(3/2) = √π/2 to show that
+> (1.143) and (1.144) reduce to the usual expressions for D = 2 and D = 3.
 
-Plan, to come back to: compute ∫…∫ e^(−r²) dx₁…dx_D two ways and equate.
-1. Cartesian: e^(−r²) = ∏ e^(−xᵢ²), so it is D copies of the 1.7 integral with σ² = ½.
-2. Polar: shells of radius r, volume S_D r^(D−1) dr (2D: ring 2πr dr; 3D: 4πr² dr). The
-   r-integral becomes a Γ (1.17) after a substitution.
-3. Equate, solve for S_D. Result: S_D = 2π^(D/2)/Γ(D/2) (1.143), V_D = S_D/D (1.144).
+Handwritten original: [`ex-1.18-handwritten-1.png`](ex-1.18-handwritten-1.png),
+[`ex-1.18-handwritten-2.png`](ex-1.18-handwritten-2.png).
+
+### Reading (1.142)
+
+e^(−x²) is chosen by Bishop: it is the 1.7 Gaussian with σ² = ½ (2σ² = 1), it factorises in
+Cartesian coordinates and depends only on r in polar ones. Right side = sum over shells of
+(function value on the shell, e^(−r²)) × (shell volume, S_D r^(D−1) dr). S_D is the area at
+radius 1 (a number for each D, like 2π in 1.7's 2πr dr); r^(D−1) carries the radius, because a
+sphere's surface is (D−1)-dimensional.
+
+### Part 1: S_D (done)
+
+S_D = ∏ ∫ e^(−xᵢ²) dxᵢ / ∫₀^∞ e^(−r²) r^(D−1) dr.
+
+Numerator: each factor is (1.126) with σ² = ½, √(2π·½) = √π; D factors give π^(D/2).
+
+Denominator: u = r², du = 2r dr, limits stay 0..∞; r^(D−1)/(2r) = ½u^((D−2)/2), so
+½ ∫₀^∞ e^(−u) u^(x−1) du with x − 1 = (D−2)/2, x = D/2: ½Γ(D/2).
+
+S_D = 2π^(D/2)/Γ(D/2). ∎ (1.143)
+
+### Next
+
+- V_D = ∫₀¹ S_D r^(D−1) dr (function 1 instead of e^(−r²), shells up to radius 1). The page
+  has ∫₀¹ S_D dr: r^(D−1) missing.
+- Check D = 2, 3 with Γ(1) = 1, Γ(3/2) = √π/2, Γ(2) = 1.
+
+### Review notes (professor), so far
+
+His own: the substitution u = r², dr = du/2r, the exponent bookkeeping, matching to Γ. Stuck
+points: where e^(−x²) comes from (chosen, = 1.7 with σ² = ½; "no need to integrate again");
+"unit radius" and why S_D is a constant while the area depends on r (dummy variables integrated
+away; 2π in 1.7's 2πr dr). My explanations were tangled here; the 1.7 ring analogy was what
+worked.
