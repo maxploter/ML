@@ -17,6 +17,7 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.14 (21.10.2026)
 - 1.17 (21.10.2026)
 - 1.18 (22.10.2026)
+- 1.19 (23.10.2026)
 
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
 D^M message is in §1.4)).
@@ -832,3 +833,41 @@ In practice: the r^(D−1) shell factor is what 1.20 is about. For a D-dim Gauss
 p(r) ∝ S_D r^(D−1) e^(−r²/2σ²): the shell volume beats the density, mass sits at r ≈ √D σ, not
 near the mean. High-dim data (embeddings) is all roughly equidistant; distance-based methods
 degrade.
+
+## Exercise 1.19 (\*\*)
+
+> Consider a sphere of radius a in D-dimensions together with the concentric hypercube of side
+> 2a, so that the sphere touches the hypercube at the centres of each of its sides. By using the
+> results of Exercise 1.18, show that the ratio of the volume of the sphere to the volume of the
+> cube is given by volume of sphere / volume of cube = π^(D/2) / (D 2^(D−1) Γ(D/2)) (1.145).
+> Now make use of Stirling's formula in the form Γ(x + 1) ≃ (2π)^(1/2) e^(−x) x^(x+1/2) (1.146),
+> which is valid for x ≫ 1, to show that, as D → ∞, the ratio (1.145) goes to zero. Show also
+> that the ratio of the distance from the centre of the hypercube to one of the corners, divided
+> by the perpendicular distance to one of the sides, is √D, which therefore goes to ∞ as D → ∞.
+> From these results we see that, in a space of high dimensionality, most of the volume of a
+> cube is concentrated in the large number of corners, which themselves become very long
+> "spikes"!
+
+Handwritten original: [`ex-1.19-handwritten-1.png`](ex-1.19-handwritten-1.png),
+[`ex-1.19-handwritten-2.png`](ex-1.19-handwritten-2.png).
+
+Triage exercise, solved anyway.
+
+**Ratio.** Sphere V_D a^D = (S_D/D) a^D (volume is D-dimensional, so a^D); cube (2a)^D (side =
+diameter). a cancels: S_D/(D 2^D) = π^(D/2)/(D 2^(D−1) Γ(D/2)). ∎ (1.145)
+
+**Limit.** Numerator (√π)^D is exponential; denominator has Γ(D/2) ≈ (D/2)!, and a factorial
+beats any exponential (Stirling: x^x vs c^x). Ratio → 0.
+
+**Corner.** Corner at (a, …, a): distance √(D a²) = √D a (Pythagoras, one a² per dimension);
+face at distance a. Ratio √D. ∎
+
+### Review notes (professor)
+
+First try: a^(D−1) (surface scaling) and cube side a; fixed after the hint (a must cancel).
+Then expanded Stirling with x + 1 = D/2 and turned the product (2x+2)·2^(2x+1) into a sum —
+unnecessary; the growth-rate comparison is the argument. Corner distance his own, from the 2D
+sketch.
+
+In practice: uniform samples in a box [−a, a]^D almost never land near the centre; in high D
+"typical" points are near the corners, at distance ≈ √D·a/√3, not a.
