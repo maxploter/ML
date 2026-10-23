@@ -893,7 +893,9 @@ In practice: uniform samples in a box [−a, a]^D almost never land near the cen
 
 Context: the derivation behind Figure 1.23.
 
-Handwritten original, so far: [`ex-1.20-handwritten-1.png`](ex-1.20-handwritten-1.png).
+Handwritten original, so far: [`ex-1.20-handwritten-1.png`](ex-1.20-handwritten-1.png) (shell volume),
+[`ex-1.20-handwritten-2.png`](ex-1.20-handwritten-2.png) (‖x‖² = r²),
+[`ex-1.20-handwritten-3.png`](ex-1.20-handwritten-3.png) (peak).
 
 ### Part A: p(r) (his work, last line to fix)
 
@@ -908,8 +910,25 @@ Page's last line has p(r)·V instead of p(**x**)·V, so S_D r^(D−1) appears tw
 Densities: p(**x**) per unit volume (no S_D); p(r) per unit radius (= p(**x**) × shell surface);
 p(r)ε = probability. 2D numbers (σ = 1, r = 1, ε = 0.01): 0.0965 × 0.0628 = 0.606 × 0.01 ≈ 0.0061.
 
+### Part B: the peak r̂ (his own)
+
+p'(r) = S_D/(2πσ²)^(D/2) [(D−1) r^(D−2) e^(−r²/2σ²) + r^(D−1) e^(−r²/2σ²)(−r/σ²)]
+= S_D/(2πσ²)^(D/2) · r^(D−2) e^(−r²/2σ²) · [(D−1) − r²/σ²].
+
+r^(D−2) = 0 only at r = 0 (where p = 0); the exponential is never 0. So (D−1) − r²/σ² = 0:
+r̂ = σ√(D−1) ≈ √D σ for large D. ∎ Single stationary point for r > 0.
+
+Slip: after factoring, wrote (1 − r²/σ²): dropped the D−1 (and first r in r^D/r^(D−2) = r²).
+
 ### Next
 
-Restart with a 1D change-of-density example before continuing. Then: peak of
-r^(D−1) e^(−r²/2σ²) (product rule, as 1.9) → r̂ ≈ √D σ; (1.149); ratio exp(D/2).
+- Part C, (1.149): work with ln p(r) = (D−1) ln r − r²/2σ² + const at r = r̂ + ε; needs the
+  Taylor expansion ln(1 + x) ≈ x − x²/2. Learn it from a structured source first.
+- Part D: p(**x**) at 0 vs at r̂: ratio exp(r̂²/2σ²) = exp(D/2).
 
+What part A taught: probability of distance r = density × amount of space at r. Density peaks
+at the centre, space (S_D r^(D−1)) is zero there, so p(r = 0) = 0: the most likely point is not
+the most likely distance.
+
+ML: latent vectors in VAEs/diffusion (D ~ 100–1000) live on the shell ‖z‖ ≈ √D; linear
+interpolation between two latents passes inside the shell, hence slerp.
