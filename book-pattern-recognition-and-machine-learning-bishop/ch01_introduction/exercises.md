@@ -871,3 +871,45 @@ sketch.
 
 In practice: uniform samples in a box [−a, a]^D almost never land near the centre; in high D
 "typical" points are near the corners, at distance ≈ √D·a/√3, not a.
+
+## Exercise 1.20 (\*\*) www (in progress)
+
+> In this exercise, we explore the behaviour of the Gaussian distribution in high-dimensional
+> spaces. Consider a Gaussian distribution in D dimensions given by
+> p(**x**) = 1/(2πσ²)^(D/2) exp(−‖**x**‖²/2σ²) (1.147). We wish to find the density with respect
+> to radius in polar coordinates in which the direction variables have been integrated out. To
+> do this, show that the integral of the probability density over a thin shell of radius r and
+> thickness ε, where ε ≪ 1, is given by p(r)ε where
+> p(r) = S_D r^(D−1)/(2πσ²)^(D/2) exp(−r²/2σ²) (1.148), where S_D is the surface area of a unit
+> sphere in D dimensions. Show that the function p(r) has a single stationary point located, for
+> large D, at r̂ ≃ √D σ. By considering p(r̂ + ε) where ε ≪ r̂, show that for large D,
+> p(r̂ + ε) = p(r̂) exp(−3ε²/2σ²) (1.149), which shows that r̂ is a maximum of the radial
+> probability density and also that p(r) decays exponentially away from its maximum at r̂ with
+> length scale σ. We have already seen that σ ≪ r̂ for large D, and so we see that most of the
+> probability mass is concentrated in a thin shell at large radius. Finally, show that the
+> probability density p(**x**) is larger at the origin than at the radius r̂ by a factor of
+> exp(D/2). We therefore see that most of the probability mass in a high-dimensional Gaussian
+> distribution is located at a different radius from the region of high probability density.
+
+Context: the derivation behind Figure 1.23.
+
+Handwritten original, so far: [`ex-1.20-handwritten-1.png`](ex-1.20-handwritten-1.png).
+
+### Part A: p(r) (his work, last line to fix)
+
+Shell volume, derived himself: V(r+ε) − V(r) = (S_D/D)[(r+ε)^D − r^D] ≈ S_D r^(D−1) ε
+(derivative of r^D; first try differentiated r^(D−1)).
+
+p(**x**) depends only on r, so it is constant on the shell:
+∫_shell p(**x**) d**x** = p(**x**)|_r · S_D r^(D−1) ε = p(r)·ε with p(r) as in (1.148).
+
+Page's last line has p(r)·V instead of p(**x**)·V, so S_D r^(D−1) appears twice.
+
+Densities: p(**x**) per unit volume (no S_D); p(r) per unit radius (= p(**x**) × shell surface);
+p(r)ε = probability. 2D numbers (σ = 1, r = 1, ε = 0.01): 0.0965 × 0.0628 = 0.606 × 0.01 ≈ 0.0061.
+
+### Next
+
+Restart with a 1D change-of-density example before continuing. Then: peak of
+r^(D−1) e^(−r²/2σ²) (product rule, as 1.9) → r̂ ≈ √D σ; (1.149); ratio exp(D/2).
+
