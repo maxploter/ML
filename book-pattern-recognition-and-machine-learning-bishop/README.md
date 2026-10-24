@@ -18,6 +18,12 @@ time.
 
 - `exercises.md` holds one `## Exercise N.k` section per exercise: the problem as quoted, then the
   solution in my own words.
+- Each section: the problem quoted, links to the handwritten pages, a transcription of the
+  solution, review notes (mistakes made on the way), and an "In practice" line linking the result
+  to ML.
+- Handwritten pages are `ex-N.k-handwritten[-i].png` next to `exercises.md`, scanned small.
+- The `## Status` block at the top of each `exercises.md` lists what is solved, in progress, open,
+  or skipped (and why). Start there.
 - A numerical exercise, or any experiment worth running, goes in a `.ipynb` next to that file.
 
 Git commit prefix: `PRML`.

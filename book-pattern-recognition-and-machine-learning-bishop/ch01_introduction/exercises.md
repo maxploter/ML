@@ -2,7 +2,9 @@
 
 Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, exercises 1.1–1.41.
 
-## Solved
+## Status
+
+Solved (date):
 
 - 1.1 (30.09.2026)
 - 1.3 (14.10.2026)
@@ -19,11 +21,16 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 1, ex
 - 1.18 (22.10.2026)
 - 1.19 (23.10.2026)
 
-Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
-D^M message is in §1.4)).
+In progress: 1.20 (parts A, B done; C, D left).
 
-Skipped, plan correct: 1.9 (mode of the Gaussian: dN/dx = 0 gives x = μ); 1.13 (variance
-estimate around the true μ is unbiased: (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12).
+Open: 1.2 (regularised version of 1.1).
+
+Skipped, plan correct (approach checked, algebra not written out): 1.9 (mode of the Gaussian:
+dN/dx = 0 gives x = μ); 1.13 (variance estimate around the true μ is unbiased:
+(1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12).
+
+Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
+D^M message is in §1.4).
 
 ---
 
