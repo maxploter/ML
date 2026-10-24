@@ -5,6 +5,12 @@ Microsoft Research hosts a free PDF:
 https://www.microsoft.com/en-us/research/uploads/prod/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf
 Don't commit the PDF to this repo. Link to it instead.
 
+- Official solutions to the **www** exercises:
+  https://www.microsoft.com/en-us/research/wp-content/uploads/2016/05/prml-web-sol-2009-09-08.pdf
+- Official errata (2nd printing, 2011-09-21). Check here when a result won't match the book:
+  https://microsoft.com/en-us/research/wp-content/uploads/2016/05/prml-errata-2nd-20110921.pdf
+  (e.g. (1.149) in Ex. 1.20 should be exp(−ε²/σ²), not exp(−3ε²/2σ²)).
+
 ## Exercises
 
 Each exercise is marked with a difficulty: (\*) takes a few minutes, (\*\*) up to about an hour,
