@@ -20,8 +20,7 @@ Solved (date):
 - 1.17 (21.10.2026)
 - 1.18 (22.10.2026)
 - 1.19 (23.10.2026)
-
-In progress: 1.20 (parts A, B done; C, D left).
+- 1.20 (24.10.2026)
 
 Open: 1.2 (regularised version of 1.1).
 
@@ -879,7 +878,7 @@ sketch.
 In practice: uniform samples in a box [−a, a]^D almost never land near the centre; in high D
 "typical" points are near the corners, at distance ≈ √D·a/√3, not a.
 
-## Exercise 1.20 (\*\*) www (in progress)
+## Exercise 1.20 (\*\*) www
 
 > In this exercise, we explore the behaviour of the Gaussian distribution in high-dimensional
 > spaces. Consider a Gaussian distribution in D dimensions given by
@@ -900,9 +899,11 @@ In practice: uniform samples in a box [−a, a]^D almost never land near the cen
 
 Context: the derivation behind Figure 1.23.
 
-Handwritten original, so far: [`ex-1.20-handwritten-1.png`](ex-1.20-handwritten-1.png) (shell volume),
+Handwritten original: [`ex-1.20-handwritten-1.png`](ex-1.20-handwritten-1.png) (shell volume),
 [`ex-1.20-handwritten-2.png`](ex-1.20-handwritten-2.png) (‖x‖² = r²),
-[`ex-1.20-handwritten-3.png`](ex-1.20-handwritten-3.png) (peak).
+[`ex-1.20-handwritten-3.png`](ex-1.20-handwritten-3.png) (peak),
+[`ex-1.20-handwritten-4.png`](ex-1.20-handwritten-4.png) (part C setup, Taylor),
+[`ex-1.20-handwritten-5.png`](ex-1.20-handwritten-5.png) (part C result, part D).
 
 ### Part A: p(r) (his work, last line to fix)
 
@@ -927,11 +928,43 @@ r̂ = σ√(D−1) ≈ √D σ for large D. ∎ Single stationary point for r > 
 
 Slip: after factoring, wrote (1 − r²/σ²): dropped the D−1 (and first r in r^D/r^(D−2) = r²).
 
-### Next
+### Part C: width of the peak
 
-- Part C, (1.149): work with ln p(r) = (D−1) ln r − r²/2σ² + const at r = r̂ + ε; needs the
-  Taylor expansion ln(1 + x) ≈ x − x²/2. Learn it from a structured source first.
-- Part D: p(**x**) at 0 vs at r̂: ratio exp(r̂²/2σ²) = exp(D/2).
+Substitute r = r̂ + ε, expand (r̂ + ε)² = r̂² + 2r̂ε + ε², and pull r̂ out of the power:
+(r̂ + ε)^(D−1) = r̂^(D−1)(1 + ε/r̂)^(D−1). The factors S_D r̂^(D−1) e^(−r̂²/2σ²)/(2πσ²)^(D/2)
+make exactly p(r̂):
+
+p(r̂ + ε) = p(r̂) · (1 + ε/r̂)^(D−1) · e^(−r̂ε/σ²) · e^(−ε²/2σ²).
+
+Write (1 + ε/r̂)^(D−1) = exp((D−1) ln(1 + ε/r̂)) and use Taylor at 0:
+ln(1 + x) ≈ x − x²/2 (f(0) = 0, f'(0) = 1, f''(0) = −1). With D − 1 = r̂²/σ² (part B):
+
+(D−1)(ε/r̂ − ε²/2r̂²) − r̂ε/σ² − ε²/2σ² = r̂ε/σ² − ε²/2σ² − r̂ε/σ² − ε²/2σ² = −ε²/σ².
+
+The linear terms cancel (r̂ is the peak). So p(r̂ + ε) = p(r̂) exp(−ε²/σ²). ∎
+
+**Book erratum:** (1.149) prints exp(−3ε²/2σ²); the official errata correct it to exp(−ε²/σ²)
+(see README). Check: d²/dr² ln p at r̂ = −(D−1)/r̂² − 1/σ² = −2/σ².
+
+Meaning: e^(−ε²/σ²) is 0.37 at ε = σ, 0.02 at 2σ: the shell is a few σ wide at radius √D σ, so
+thin relative to its radius (σ ≪ r̂ because r̂/σ ≈ √D).
+
+### Part D: density at the centre vs at r̂
+
+p(**x**) depends only on r: p(0) = 1/(2πσ²)^(D/2), p at r̂ = p(0)·exp(−r̂²/2σ²). With r̂² ≈ Dσ²:
+p(0)/p(r̂) = exp(D/2). ∎ (D = 100: e^50 ≈ 5·10²¹.)
+
+So the region of highest density (the centre) is not where the mass is (the shell at √D σ).
+
+### Review notes (professor)
+
+Hard exercise for him; parts B–D mostly his own. Part A: confused p(**x**) (per volume) with p(r)
+(per radius) and multiplied p(r) by the shell volume again; resolved by stating the task ("derive
+(1.148) from (1.147)") and ‖x‖² = r². Taylor series was new: learned it here (value, slope,
+curvature at a point; why expand at 0). Slips: dropped D−1 when factoring in part B; sign in
+(r̂ + ε)² and a stray (2πσ²)^(D/2) in C. His C result (2 instead of the book's 3) is correct.
+Gap to fill later: change of variables for densities (Гнеденко, functions of random variables;
+Bishop §1.2.1 (1.27); his own Ex. 1.4).
 
 What part A taught: probability of distance r = density × amount of space at r. Density peaks
 at the centre, space (S_D r^(D−1)) is zero there, so p(r = 0) = 0: the most likely point is not
