@@ -23,6 +23,7 @@ Solved (date):
 - 1.20 (24.10.2026)
 - 1.21 (25.10.2026)
 - 1.22 (25.10.2026)
+- 1.25 (25.10.2026)
 
 Open: 1.2 (regularised version of 1.1).
 
@@ -1102,3 +1103,39 @@ Plan (his; written down from his spoken explanation on 25.10.2026, no handwritte
 Review notes: first misread λ as the cost of every mistake; it is the cost of the extra action
 "reject". He said "priors × L" where posteriors are meant (with the unnormalised
 p(x|C_k)p(C_k) of 1.23, the reject cost would have to be λ·p(x)).
+
+## Exercise 1.25 (\*) www
+
+> Consider the generalization of the squared loss function (1.87) for a single target variable
+> t to the case of multiple target variables described by the vector **t** given by
+> E[L(**t**, **y**(**x**))] = ∫∫ ‖**y**(**x**) − **t**‖² p(**x**, **t**) d**x** d**t** (1.151).
+> Using the calculus of variations, show that the function **y**(**x**) for which this
+> expected loss is minimized is given by **y**(**x**) = E_**t**[**t**|**x**]. Show that this
+> result reduces to (1.89) for the case of a single target variable t.
+
+Context: §1.5.5, loss functions for regression; Appendix D, calculus of variations.
+
+Handwritten original: [`ex-1.25-handwritten.png`](ex-1.25-handwritten.png).
+
+### Solution
+
+Same route as the book's (1.87) → (1.88) → (1.89), with a vector target.
+
+1. ‖**y** − **t**‖² = Σ_i (y_i − t_i)², so its derivative with respect to the vector **y** is
+   2(**y** − **t**), component by component. Vector version of (1.88):
+   δE/δ**y**(**x**) = 2 ∫ (**y**(**x**) − **t**) p(**x**, **t**) d**t** = 0.
+2. **y**(**x**) does not depend on **t**, so it leaves the integral, and ∫ p(**x**, **t**) d**t**
+   = p(**x**) (sum rule): **y**(**x**) p(**x**) = ∫ **t** p(**x**, **t**) d**t**.
+3. **y**(**x**) = ∫ **t** p(**x**, **t**) d**t** / p(**x**) = ∫ **t** p(**t**|**x**) d**t**
+   = E_**t**[**t**|**x**]. ∎
+4. With one component, **t** = t and this is (1.89).
+
+### Review notes (professor)
+
+His page has the result (step 3) and "δE/δ**y**(**x**) = 0"; he saw that it is the book's
+derivation with a bold **t**. Steps 1–2 (what the derivative equals, and the sum rule that turns
+∫ p(**x**, **t**) d**t** into p(**x**)) are filled in here. Each component is a separate scalar
+problem, so the vector case adds nothing beyond the derivative of the squared norm.
+
+In practice: training a regression net with MSE makes it predict the conditional mean of the
+target, per output, for any number of outputs.
