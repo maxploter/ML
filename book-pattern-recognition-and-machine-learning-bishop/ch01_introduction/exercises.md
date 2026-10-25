@@ -1187,5 +1187,11 @@ probability?" was the answer); and why ∫ **t** p(**x**, **t**) d**t** = p(**x*
 He expanded the third term himself and got E[t²|x] − E[t|x]², i.e. the variance; for the
 minimization that term doesn't need simplifying, since it has no **y**.
 
+Book slip, found by him: the printed (1.90) has the second term as ∫ {E[t|x] − t}² p(x) dx,
+with t still present after "performing the integral over t". It should be
+∫∫ {E[t|x] − t}² p(x, t) dx dt = ∫ var[t|x] p(x) dx, as derived above and as the text right
+after (1.90) describes it ("the variance of the distribution of t, averaged over x"). Not in
+the official errata (2011).
+
 In practice: the irreducible noise term is why validation MSE never reaches zero; it's the
 regression analogue of the Bayes error in Ex. 1.21.
