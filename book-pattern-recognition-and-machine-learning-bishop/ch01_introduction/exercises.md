@@ -28,7 +28,8 @@ Open: 1.2 (regularised version of 1.1).
 
 Skipped, plan correct (approach checked, algebra not written out): 1.9 (mode of the Gaussian:
 dN/dx = 0 gives x = μ); 1.13 (variance estimate around the true μ is unbiased:
-(1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12).
+(1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12); 1.23 (general loss + priors: choose j minimizing
+Σ_k L_kj p(x|C_k) p(C_k)).
 
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
 D^M message is in §1.4).
@@ -1050,3 +1051,23 @@ class k. The last line on the page reads "≤" overwritten; it is an equality.
 
 In practice: argmax of a classifier's softmax output is the optimal decision only under 0-1
 loss. With unequal costs (fraud, medical) the decision threshold moves away from 0.5.
+
+## Exercise 1.23 (\*) (skipped, plan correct)
+
+> Derive the criterion for minimizing the expected loss when there is a general loss matrix
+> and general prior probabilities for the classes.
+
+"General" = any L_kj and any p(C_k), kept as symbols.
+
+Plan (his, with one fix):
+
+1. (1.81): for each x choose the j that minimizes Σ_k L_kj p(C_k|x). In matrix form: the row
+   of posteriors (1×K) times L (K×K) gives the expected cost of each choice j; take the argmin.
+   For a data set, P (N×K) @ L, argmin per row.
+2. Bayes: p(C_k|x) = p(x|C_k) p(C_k) / p(x).
+3. p(x) is the same positive factor for every candidate j, so dividing by it doesn't change
+   which j is smallest. Drop it. The priors p(C_k) depend on k and stay inside the sum.
+4. Rule: choose the j that minimizes Σ_k L_kj p(x|C_k) p(C_k).
+
+Review note: he first said p(x) can be dropped "because the data are i.i.d."; the actual reason
+is step 3 (a common positive factor doesn't change an argmin).
