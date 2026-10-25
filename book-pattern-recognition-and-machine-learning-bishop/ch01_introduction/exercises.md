@@ -1011,3 +1011,20 @@ inequality" step.
 
 ML: ∫ (p₁ p₂)^(1/2) dx is the Bhattacharyya coefficient, a measure of how much the two classes
 overlap. It bounds the Bayes error: the error no classifier can beat.
+
+## Exercise 1.22 (\*) www (in progress)
+
+> Given a loss matrix with elements L_kj, the expected risk is minimized if, for each x, we
+> choose the class that minimizes (1.81). Verify that, when the loss matrix is given by
+> L_kj = 1 − I_kj, where I_kj are the elements of the identity matrix, this reduces to the
+> criterion of choosing the class having the largest posterior probability. What is the
+> interpretation of this form of loss matrix?
+
+Context: §1.5.2, minimizing the expected loss. (1.80): E[L] = Σ_k Σ_j ∫_{R_j} L_kj p(x, C_k) dx;
+(1.81): choose the j that minimizes Σ_k L_kj p(C_k|x).
+
+Handwritten so far: [`ex-1.22-handwritten-1.png`](ex-1.22-handwritten-1.png): the cancer loss
+matrix (rows = true k, columns = predicted j) and (1.80) in his words. His own point: x ∈ R_j
+does not mean x's true label is j, which is why (1.80) sums over every true class k.
+Correction: minimizing E[L] does not change any probabilities; the only thing we choose is the
+regions R_j, i.e. which column j each x is assigned to.
