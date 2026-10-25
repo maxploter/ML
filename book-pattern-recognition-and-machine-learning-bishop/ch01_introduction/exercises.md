@@ -1151,7 +1151,8 @@ Context: §1.5.5, the decomposition (1.90). Same answer as Ex. 1.25, by algebra 
 calculus of variations, and it also shows what part of the loss no model can remove.
 
 Handwritten original: [`ex-1.26-handwritten-1.png`](ex-1.26-handwritten-1.png) (expansion),
-[`ex-1.26-handwritten-2.png`](ex-1.26-handwritten-2.png) (the three terms).
+[`ex-1.26-handwritten-2.png`](ex-1.26-handwritten-2.png) (the three terms),
+[`ex-1.26-handwritten-3.png`](ex-1.26-handwritten-3.png) (third term = variance, final form).
 
 ### Solution
 
@@ -1192,6 +1193,15 @@ with t still present after "performing the integral over t". It should be
 ∫∫ {E[t|x] − t}² p(x, t) dx dt = ∫ var[t|x] p(x) dx, as derived above and as the text right
 after (1.90) describes it ("the variance of the distribution of t, averaged over x"). Not in
 the official errata (2011).
+
+On page 3 the final line drops p(x) from the second integral: it is ∫ var[t|x] p(x) dx (each
+of his three pieces carries the factor p(x)).
+
+What the decomposition teaches (beyond "the minimum is E[t|x]"): the loss of any model =
+(how far it is from E[t|x], weighted by p(x), so errors count where data is dense) + (noise
+floor ∫ var[t|x] p(x) dx). The floor depends only on the data, not the model: more capacity
+can't lower it; only more informative inputs x can (they shrink var[t|x]). The same
+add-and-subtract trick gives the bias–variance decomposition in §3.2.
 
 In practice: the irreducible noise term is why validation MSE never reaches zero; it's the
 regression analogue of the Bayes error in Ex. 1.21.
