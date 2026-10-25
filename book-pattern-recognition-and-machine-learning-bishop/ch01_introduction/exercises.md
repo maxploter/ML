@@ -29,7 +29,7 @@ Open: 1.2 (regularised version of 1.1).
 Skipped, plan correct (approach checked, algebra not written out): 1.9 (mode of the Gaussian:
 dN/dx = 0 gives x = μ); 1.13 (variance estimate around the true μ is unbiased:
 (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12); 1.23 (general loss + priors: choose j minimizing
-Σ_k L_kj p(x|C_k) p(C_k)).
+Σ_k L_kj p(x|C_k) p(C_k)); 1.24 (reject option: θ = 1 − λ).
 
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
 D^M message is in §1.4).
@@ -1071,3 +1071,27 @@ Plan (his, with one fix):
 
 Review note: he first said p(x) can be dropped "because the data are i.i.d."; the actual reason
 is step 3 (a common positive factor doesn't change an argmin).
+
+## Exercise 1.24 (\*\*) www (skipped, plan correct)
+
+> Consider a classification problem in which the loss incurred when an input vector from class
+> C_k is classified as belonging to class C_j is given by the loss matrix L_kj, and for which
+> the loss incurred in selecting the reject option is λ. Find the decision criterion that will
+> give the minimum expected loss. Verify that this reduces to the reject criterion discussed in
+> Section 1.5.3 when the loss matrix is given by L_kj = 1 − I_kj. What is the relationship
+> between λ and the rejection threshold θ?
+
+Context: §1.5.3, the reject option (Fig. 1.26): reject if max_k p(C_k|x) < θ. There θ is
+chosen by hand; this exercise derives it from costs.
+
+Plan (his):
+
+1. At each x there are K + 1 options: say C_j, expected cost Σ_k L_kj p(C_k|x) (as in 1.22),
+   or reject, cost λ whatever the true class. Pick the cheapest:
+   reject if min_j Σ_k L_kj p(C_k|x) > λ, otherwise the argmin class.
+2. With L = 1 − I the best class costs 1 − max_k p(C_k|x) (Ex. 1.22).
+3. Reject if 1 − max_k p(C_k|x) > λ, i.e. max_k p(C_k|x) < 1 − λ. So θ = 1 − λ.
+
+Review notes: first misread λ as the cost of every mistake; it is the cost of the extra action
+"reject". He said "priors × L" where posteriors are meant (with the unnormalised
+p(x|C_k)p(C_k) of 1.23, the reject cost would have to be λ·p(x)).
