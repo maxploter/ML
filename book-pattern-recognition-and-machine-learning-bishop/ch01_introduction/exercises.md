@@ -1070,6 +1070,12 @@ handwritten page):
    which j is smallest. Drop it. The priors p(C_k) depend on k and stay inside the sum.
 4. Rule: choose the j that minimizes Σ_k L_kj p(x|C_k) p(C_k).
 
+Step 1 alone is already a complete answer (the priors are inside the posteriors). Steps 2–4
+give the equivalent form with the priors visible, which the wording "general prior
+probabilities" hints at. Its use: if the class balance changes (e.g. the fraud rate in
+production differs from training), swap in the new p(C_k) and keep p(x|C_k), without
+retraining (generative approach, §1.5.4).
+
 Review note: he first said p(x) can be dropped "because the data are i.i.d."; the actual reason
 is step 3 (a common positive factor doesn't change an argmin).
 
