@@ -22,6 +22,7 @@ Solved (date):
 - 1.19 (23.10.2026)
 - 1.20 (24.10.2026)
 - 1.21 (25.10.2026)
+- 1.22 (25.10.2026)
 
 Open: 1.2 (regularised version of 1.1).
 
@@ -1012,7 +1013,7 @@ inequality" step.
 ML: ∫ (p₁ p₂)^(1/2) dx is the Bhattacharyya coefficient, a measure of how much the two classes
 overlap. It bounds the Bayes error: the error no classifier can beat.
 
-## Exercise 1.22 (\*) www (in progress)
+## Exercise 1.22 (\*) www
 
 > Given a loss matrix with elements L_kj, the expected risk is minimized if, for each x, we
 > choose the class that minimizes (1.81). Verify that, when the loss matrix is given by
@@ -1021,10 +1022,31 @@ overlap. It bounds the Bayes error: the error no classifier can beat.
 > interpretation of this form of loss matrix?
 
 Context: §1.5.2, minimizing the expected loss. (1.80): E[L] = Σ_k Σ_j ∫_{R_j} L_kj p(x, C_k) dx;
-(1.81): choose the j that minimizes Σ_k L_kj p(C_k|x).
+(1.81): choose the j that minimizes Σ_k L_kj p(C_k|x). "Risk" = expected loss.
 
-Handwritten so far: [`ex-1.22-handwritten-1.png`](ex-1.22-handwritten-1.png): the cancer loss
-matrix (rows = true k, columns = predicted j) and (1.80) in his words. His own point: x ∈ R_j
-does not mean x's true label is j, which is why (1.80) sums over every true class k.
-Correction: minimizing E[L] does not change any probabilities; the only thing we choose is the
-regions R_j, i.e. which column j each x is assigned to.
+Handwritten original: [`ex-1.22-handwritten-1.png`](ex-1.22-handwritten-1.png) (loss matrix,
+(1.80) in his words), [`ex-1.22-handwritten-2.png`](ex-1.22-handwritten-2.png) (solution).
+
+### Solution
+
+L = 1 − I: zeros on the diagonal, ones everywhere else. For a candidate class j:
+
+Σ_k L_kj p(C_k|x) = p(C_1|x) + … + 0 · p(C_j|x) + … + p(C_K|x) = Σ_{k≠j} p(C_k|x) = 1 − p(C_j|x),
+
+because the posteriors at a fixed x sum to 1. The larger p(C_j|x), the smaller 1 − p(C_j|x),
+so minimizing (1.81) picks the class with the largest posterior. ∎
+
+Interpretation: every mistake costs the same (1), a correct decision costs 0 (the "0-1 loss").
+Then E[L] = p(mistake), so §1.5.2 reduces to §1.5.1, minimizing the misclassification rate
+(the quantity bounded in Ex. 1.21).
+
+### Review notes (professor)
+
+His own after two hints (the expansion; "the posteriors sum to 1"). Early confusion: thought
+minimizing E[L] changes the probabilities. It doesn't: the model is fixed after the inference
+stage (which includes training); the decision stage only chooses the regions R_j. His own
+point: x ∈ R_j is a decision, not the true label, which is why (1.80) sums over every true
+class k. The last line on the page reads "≤" overwritten; it is an equality.
+
+In practice: argmax of a classifier's softmax output is the optimal decision only under 0-1
+loss. With unequal costs (fraud, medical) the decision threshold moves away from 0.5.
