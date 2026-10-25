@@ -24,6 +24,7 @@ Solved (date):
 - 1.21 (25.10.2026)
 - 1.22 (25.10.2026)
 - 1.25 (25.10.2026)
+- 1.26 (25.10.2026)
 
 Open: 1.2 (regularised version of 1.1).
 
@@ -1139,3 +1140,52 @@ problem, so the vector case adds nothing beyond the derivative of the squared no
 
 In practice: training a regression net with MSE makes it predict the conditional mean of the
 target, per output, for any number of outputs.
+
+## Exercise 1.26 (\*)
+
+> By expansion of the square in (1.151), derive a result analogous to (1.90) and hence show that
+> the function **y**(**x**) that minimizes the expected squared loss for the case of a vector
+> **t** of target variables is again given by the conditional expectation of **t**.
+
+Context: §1.5.5, the decomposition (1.90). Same answer as Ex. 1.25, by algebra instead of
+calculus of variations, and it also shows what part of the loss no model can remove.
+
+Handwritten original: [`ex-1.26-handwritten-1.png`](ex-1.26-handwritten-1.png) (expansion),
+[`ex-1.26-handwritten-2.png`](ex-1.26-handwritten-2.png) (the three terms).
+
+### Solution
+
+Write E for E[**t**|**x**]. Add and subtract it inside the norm and expand the brackets:
+
+‖**y** − **t**‖² = ‖**y** − E‖² + 2(**y** − E)ᵀ(E − **t**) + ‖E − **t**‖².
+
+Integrate each term against p(**x**, **t**) over **t** (x held fixed):
+
+1. ‖**y**(**x**) − E‖² has no **t**: it leaves the integral and ∫ p(**x**, **t**) d**t** = p(**x**)
+   (sum rule). Gives ∫ ‖**y**(**x**) − E‖² p(**x**) d**x**.
+2. 2(**y** − E)ᵀ has no **t** and leaves the integral; the rest is
+   ∫ (E − **t**) p(**x**, **t**) d**t** = E·p(**x**) − ∫ **t** p(**x**, **t**) d**t**
+   = E·p(**x**) − E·p(**x**) = 0, using ∫ **t** p(**x**, **t**) d**t** = p(**x**)·E[**t**|**x**]
+   (product rule p(**x**, **t**) = p(**t**|**x**)p(**x**); his line from Ex. 1.25).
+3. ∫ ‖E − **t**‖² p(**x**, **t**) d**t** = p(**x**)(E[‖**t**‖²|**x**] − ‖E‖²): the conditional
+   variance (summed over components), by (1.40).
+
+So, the vector form of (1.90):
+
+E[L] = ∫ ‖**y**(**x**) − E[**t**|**x**]‖² p(**x**) d**x** + ∫ var[**t**|**x**] p(**x**) d**x**.
+
+Only the first term depends on **y**; it is ≥ 0 and equals 0 exactly when
+**y**(**x**) = E[**t**|**x**]. ∎ The second term is the noise in **t**: no model can reduce it.
+
+### Review notes (professor)
+
+His own derivation, with three fixes on the way: the sign of the last term after expanding
+(he had −, it is +); he integrated a t-free factor as "∫ … dt = t · …", forgetting that
+p(**x**, **t**) depends on **t** (his own question "why am I not considering t inside the
+probability?" was the answer); and why ∫ **t** p(**x**, **t**) d**t** = p(**x**)E[**t**|**x**]
+(p(**x**, **t**) is not a density of **t**; the product rule turns it into p(**t**|**x**)p(**x**)).
+He expanded the third term himself and got E[t²|x] − E[t|x]², i.e. the variance; for the
+minimization that term doesn't need simplifying, since it has no **y**.
+
+In practice: the irreducible noise term is why validation MSE never reaches zero; it's the
+regression analogue of the Bayes error in Ex. 1.21.
