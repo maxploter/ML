@@ -25,4 +25,7 @@ in its own homework notebook, under the bonus heading.
 | HW-5 B3 | Discrete AdaBoost from scratch (Friedman, Hastie, Tibshirani 2000) | **Solve** | Kaggle gradient-boosting phase, with ISL boosting and PRML §14.3 |
 | HW-6 | — | no bonus | |
 
+Order of work is by concept, not by course: see the PRML
+[practice map](../book-pattern-recognition-and-machine-learning-bishop/practice-map.md).
+
 Solve = do it. Triage = write the plan, do it only if time allows. Skip = not worth the time.

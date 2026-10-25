@@ -31,5 +31,7 @@ time.
 - The `## Status` block at the top of each `exercises.md` lists what is solved, in progress, open,
   or skipped (and why). Start there.
 - A numerical exercise, or any experiment worth running, goes in a `.ipynb` next to that file.
+- [`practice-map.md`](practice-map.md): coding practice by concept. For each PRML section, the
+  notebooks from any course in this repo that train it. Solved after the section, in that order.
 
 Git commit prefix: `PRML`.
