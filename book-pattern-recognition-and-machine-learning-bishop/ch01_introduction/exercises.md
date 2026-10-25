@@ -21,6 +21,7 @@ Solved (date):
 - 1.18 (22.10.2026)
 - 1.19 (23.10.2026)
 - 1.20 (24.10.2026)
+- 1.21 (25.10.2026)
 
 Open: 1.2 (regularised version of 1.1).
 
@@ -972,3 +973,41 @@ the most likely distance.
 
 ML: latent vectors in VAEs/diffusion (D ~ 100–1000) live on the shell ‖z‖ ≈ √D; linear
 interpolation between two latents passes inside the shell, hence slerp.
+
+## Exercise 1.21 (\*\*)
+
+> Consider two nonnegative numbers a and b, and show that, if a ≤ b, then a ≤ (ab)^(1/2). Use
+> this result to show that, if the decision regions of a two-class classification problem are
+> chosen to minimize the probability of misclassification, this probability will satisfy
+> p(mistake) ≤ ∫ {p(x, C₁) p(x, C₂)}^(1/2) dx (1.150).
+
+Context: §1.5.1, minimizing the misclassification rate.
+
+Handwritten original: [`ex-1.21-handwritten.png`](ex-1.21-handwritten.png).
+
+### Part 1: a ≤ (ab)^(1/2)
+
+Multiply a ≤ b by a ≥ 0: a² ≤ ab. Take the square root of both sides (√ is increasing on
+non-negative numbers): a ≤ (ab)^(1/2). ∎ (He also did it by cases: b = a gives equality, b > a
+gives ab > a².)
+
+### Part 2: the bound (1.150)
+
+1. By (1.78): p(mistake) = ∫_{R₁} p(x, C₂) dx + ∫_{R₂} p(x, C₁) dx.
+2. Minimizing p(mistake) puts each x in the class with the larger p(x, C_k). So in R₁ the
+   integrand p(x, C₂) is the smaller of the two, and likewise in R₂:
+   p(mistake) = ∫ min(p(x, C₁), p(x, C₂)) dx.
+3. At every x take a = min, b = max (both ≥ 0, densities). Part 1 gives
+   min ≤ (min · max)^(1/2) = (p(x, C₁) p(x, C₂))^(1/2).
+4. If f(x) ≤ g(x) at every x then ∫ f dx ≤ ∫ g dx, which gives (1.150). ∎
+
+### Review notes (professor)
+
+Correct, standard structure, his own. Fixed after review: a crossed-out line
+max(p₁, p₂) = 1 − min(p₁, p₂). That holds for posteriors p(C_k|x), which sum to 1 at each x; for
+joint densities p(x, C₁) + p(x, C₂) = p(x) (sum rule), and only the double sum/integral over
+classes *and* x equals 1. Also added: a, b ≥ 0 (not > 0) and the "integrate a pointwise
+inequality" step.
+
+ML: ∫ (p₁ p₂)^(1/2) dx is the Bhattacharyya coefficient, a measure of how much the two classes
+overlap. It bounds the Bayes error: the error no classifier can beat.
