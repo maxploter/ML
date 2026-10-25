@@ -1059,7 +1059,8 @@ loss. With unequal costs (fraud, medical) the decision threshold moves away from
 
 "General" = any L_kj and any p(C_k), kept as symbols.
 
-Plan (his, with one fix):
+Plan (his, with one fix; written down from his spoken explanation on 25.10.2026, no
+handwritten page):
 
 1. (1.81): for each x choose the j that minimizes Σ_k L_kj p(C_k|x). In matrix form: the row
    of posteriors (1×K) times L (K×K) gives the expected cost of each choice j; take the argmin.
@@ -1084,7 +1085,7 @@ is step 3 (a common positive factor doesn't change an argmin).
 Context: §1.5.3, the reject option (Fig. 1.26): reject if max_k p(C_k|x) < θ. There θ is
 chosen by hand; this exercise derives it from costs.
 
-Plan (his):
+Plan (his; written down from his spoken explanation on 25.10.2026, no handwritten page):
 
 1. At each x there are K + 1 options: say C_j, expected cost Σ_k L_kj p(C_k|x) (as in 1.22),
    or reject, cost λ whatever the true class. Pick the cheapest:
