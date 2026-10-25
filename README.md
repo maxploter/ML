@@ -14,6 +14,7 @@ The project is organized into subprojects, each with its own focus and set of ex
 * NLP - Natural Language Processing
 * SL - Statistical Learning
 * ML2 - University of Tartu source
+* MLT - University of Tartu Machine Learning (2023, `course-ml-tartu-2023`)
 * MLV - Course Voron
 * PRML - Bishop, Pattern Recognition and Machine Learning
 
