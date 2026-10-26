@@ -164,7 +164,8 @@ Everything else in these courses, so nothing is dropped silently:
 - **Pen-and-paper theory sheets** (MSU `homeworks-theory`, `ML15/ML16/homeworks` PDFs): the PRML
   exercises already cover this ground.
 - **HSE beyond the seminar sheets:** С5–С6 and lectures 5–6 are causal inference (double ML,
-  ATE, S/T-learners, IPW, LATE): not in PRML, a possible topic after it. The homework is a
+  ATE, S/T/X-learners, IPW, doubly robust, LATE): not in PRML. Scheduled as its own two-week
+  block right after PRML Ch. 4 (late January): lecture 5 → С5, lecture 6 → С6. The homework is a
   semester research report on simulated data (the Kaggle track covers that workflow). Exams
   (some with solutions) repeat the seminar style. Lecture 8 (RNN) is deep learning.
   `2. Решающие деревья.py` is an sklearn walkthrough. Lectures: read one only when a seminar
