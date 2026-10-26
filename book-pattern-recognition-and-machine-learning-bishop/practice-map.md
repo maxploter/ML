@@ -10,8 +10,8 @@ item the source itself flags as optional.
 
 ## Status
 
-Audited 26.10.2026 by notebook **content**, not title: every notebook in ML2, MLT, MLV and MSU
-was read down to its homework items and either mapped below or listed under "Not mapped" with a
+Audited 26.10.2026 by notebook **content**, not title: every notebook in ML2, MLT, MLV and MSU,
+and every HSE PDF, was read down to its homework items and either mapped below or listed under "Not mapped" with a
 reason. Whether I solved a notebook in an earlier course is still unverified, except where noted
 ("done 2023/2025").
 
@@ -28,6 +28,7 @@ moved to §4.3.3 (Newton–Raphson).
 | MLV | `course-ml-voron/MachineLearningSeminars/semN/main.ipynb` | Vorontsov's course, MIPT seminars (Russian). sem1–3 done 2025 (`MachineLearningSeminars_results/`). `MLV HW1` = `hometask/autumn_semester/task_1/hw1_student.ipynb` |
 | MSU | `course-ml-voron/ml-course-msu/` | ВМК МГУ seminars (E. Sokolov), in the same folder. `MSU P2` = `ML17/homeworks-practice/homework-practice-02.ipynb` (P3–P5 likewise); `MSU EM` = `ML16-spring/labs/lab-01-em.ipynb` |
 | NN | `Neural-networks/practices/` | UT Neural Networks |
+| HSE | `course-ml-hse-bogdanpotanin/Machine-Learning/` | HSE "ML in economics" (B. Potanin). Only the seminar sheets are used: short **by-hand** problems on small tables, no code. `HSE С3.4` = Семинар 3, Задание 4 |
 
 ## Chapter 1 (now)
 
@@ -35,10 +36,10 @@ moved to §4.3.3 (Newton–Raphson).
 |---|---|---|
 | §1.1, §1.3 | overfitting, generalisation, model selection, cross-validation | **ML2 01/03 (3.1, 3.2)**, **ML2 02/07 (4.1)**, **ML2 02/10 (8.1\*)**; ML2 01/01 (2025 attempt), 01/02 (2.1), 02/08 (5.1), 02/09 (6.1\*), 02/12 (10.1); reading: ML2 02/tutorials 02–03 (why overfitting occurs); MLV sem8 (model selection criteria, Add-Del) |
 | §1.2.3 | frequentist vs Bayesian: confidence vs credible intervals, bootstrap | **ML2 03/01 (1.1\* paradox of confidence intervals)**, **ML2 02/11 (9.1)**; ML2 02/01 (1.1, 1.3), 02/02 (2.1, 2.2), 02/05 (5.1\*) — theory for these: Blom ch. 13–14 |
-| §1.2.5, §1.5.5 | Gaussian noise ⇒ squared loss ⇒ mean; Laplace noise ⇒ absolute loss ⇒ median (Ex. 1.27, q = 1) | **ML2 03/07 sections I–III (OLS vs LAD, worked in the notebook)** |
+| §1.2.5, §1.5.5 | Gaussian noise ⇒ squared loss ⇒ mean; Laplace noise ⇒ absolute loss ⇒ median (Ex. 1.27, q = 1) | **ML2 03/07 sections I–III (OLS vs LAD, worked in the notebook)**; HSE С3.4.1 (MSE-optimal F(x) = E[t\|x] for a Poisson target: Ex. 1.25 with numbers) |
 | §1.4 | curse of dimensionality | NN Practice_01 `knn.ipynb` task 1.5; MLT P-3 (curse of dimensionality part) |
-| §1.5.1–1.5.4 | loss matrix, cost-optimal threshold, class priors, ROC | **MLV HW1 Задача 2 (2.1–2.3)**: threshold monotonicity, cost-optimal threshold from c_FP, c_FN (= Ex. 1.22 with numbers), threshold on the logit; ML2 02/04 (4.1\*, 4.2\* ROC envelopes); MLT P-12; MLT HW-6 (done 2023: imbalanced data ↔ §1.5.4) |
-| §1.6 | entropy, KL, mutual information | no notebook trains it; Ex. 1.29–1.41 are the practice. Used in code later: split criteria (§14.4), cross-entropy loss (§4.3.2) |
+| §1.5.1–1.5.4 | loss matrix, cost-optimal threshold, class priors, ROC | **MLV HW1 Задача 2 (2.1–2.3)**: threshold monotonicity, cost-optimal threshold from c_FP, c_FN (= Ex. 1.22 with numbers), threshold on the logit; ML2 02/04 (4.1\*, 4.2\* ROC envelopes); MLT P-12; MLT HW-6 (done 2023: imbalanced data ↔ §1.5.4); HSE С2.1.4–1.6 (bank: prices of outcomes, optimal threshold; a third action "insure" works like the reject option), HSE С2.2 (profit, gain/lift, AUC) |
+| §1.6 | entropy, KL, mutual information | **HSE С3.1** (depth-2 tree by entropy, by hand: information gain H[y] − H[y\|x] = I[x, y], Ex. 1.41 with numbers), after Ex. 1.41. Otherwise Ex. 1.29–1.41 are the practice; in code later: split criteria (§14.4), cross-entropy loss (§4.3.2) |
 
 ## Chapter 2
 
@@ -50,7 +51,7 @@ moved to §4.3.3 (Newton–Raphson).
 | §2.3.6–2.3.9 | Bayesian Gaussian, Student t, periodic | no notebook; PRML exercises only. Mixtures (§2.3.9) → Ch. 9 |
 | §2.4 | exponential family | used in code at §4.3.6 (GLM) |
 | §2.5.1 | kernel density estimation, bandwidth by leave-one-out | **MLV sem13 (KDE, LOO bandwidth)**; MLV sem4 (Parzen window part) |
-| §2.5.2 | k-nearest neighbours | **MLT HW-1 bonus 1** (kNN posteriors K_k/K); NN Practice_01 `knn.ipynb`; MLV sem4 (+ its homework: kNN hyperparameters by CV) |
+| §2.5.2 | k-nearest neighbours | **MLT HW-1 bonus 1** (kNN posteriors K_k/K); NN Practice_01 `knn.ipynb`; MLV sem4 (+ its homework: kNN hyperparameters by CV); HSE С2.1.1–1.3 (feature scaling under Minkowski distance) |
 
 ## Chapter 3
 
@@ -59,7 +60,7 @@ moved to §4.3.3 (Newton–Raphson).
 | §3.1.1–3.1.3 | least squares as ML, design matrix, SVD / pseudo-inverse, sequential (LMS) | **MLV sem6 (+ homework: error vs λ, SVD vs direct)**; ML2 03/08 (8.1); MSU `ML15-spring/labs/lab01-linear.ipynb` part 2 (gradient descent by hand); MLV sem2 (SGD, done 2025) |
 | §3.1.4 | ridge, lasso, sparsity, feature scaling | **MLV HW1 Задача 1 (1.1–1.4)** (pen-and-paper: closed forms for orthonormal X, soft thresholding, ‖ŵ‖ falls with λ, scaling, intercept not penalised), **MLV HW1 Задача 3 (3.1–3.5)** (Diabetes: scaling, ridge/lasso paths), **ML2 03/07 (7.3)**; ML2 03/07 (7.2, 7.4); MLT P-7; MLT HW-4 ex. 1 (ElasticNet, done 2023); MSU P2 part 1 |
 | §3.1.5 | multiple outputs | ML2 05/07 (4.1\*) |
-| §3.2 | bias–variance decomposition | **MSU P3 part I (tasks 1–2)**: average model and Monte-Carlo bias/variance, PRML Fig. 3.5–3.6 in code; ML2 02/06 (3.1\*) |
+| §3.2 | bias–variance decomposition | **MSU P3 part I (tasks 1–2)**: average model and Monte-Carlo bias/variance, PRML Fig. 3.5–3.6 in code; ML2 02/06 (3.1\*); HSE С3.4.2–4.3 (bias, variance and noise by hand) |
 | §3.3 | Bayesian linear regression, predictive variance | MLV sem2 homework (MAP with p(w) = N(0, I), = PRML (3.55)); predictive variance in use: MLV sem26 (§6.4 row) |
 | §3.4–3.5 | evidence, Bayesian model comparison | no notebook; PRML exercises only |
 
@@ -69,7 +70,7 @@ moved to §4.3.3 (Newton–Raphson).
 |---|---|---|
 | §4.1.1–4.1.3 | discriminant functions, multiclass, least-squares classification | MLV sem1 (binary → multiclass, intercept; done 2025) |
 | §4.1.4–4.1.6 | Fisher's linear discriminant, whitening | **ML2 05/05 (5.1 implement LDA)**; ML2 05/06 (6.1–6.4\*) |
-| §4.2 | generative classifiers: Gaussian classes ⇒ linear boundary, naive Bayes | **ML2 05/05 section III** (Bayes factors, same notebook as above); MLV sem13 (naive Bayes part) |
+| §4.2 | generative classifiers: Gaussian classes ⇒ linear boundary, naive Bayes | **ML2 05/05 section III** (Bayes factors, same notebook as above); MLV sem13 (naive Bayes part); HSE С1.1 (naive Bayes by hand), С1.2.4 (asymptotic bias of naive Bayes) |
 | §4.3.1–4.3.4 | logistic regression, cross-entropy, softmax, calibration | **MSU P2 part 2 (task 1: L2 logistic regression by gradient descent, vectorised; tasks 2–3)**, **MSU P2 part 3 task 2** (calibration curves: a threshold on p(x) needs calibrated probabilities, §1.5), **MLV HW1 Задача 4 (4.1–4.5)** (logreg vs kNN vs RBF-SVM vs tree; 4.4 = thresholds again); NN Practice_02 `softmax.ipynb`; ML2 02/08 (5.1) |
 | §4.3.3 | Newton–Raphson / IRLS | **MLV sem7** (gradient descent vs Newton–Raphson vs Gauss–Newton) |
 | §4.3.6 | canonical link, GLM | MSU P5 (Poisson regression: own loss and gradient, L-BFGS; statsmodels Gaussian / Poisson / NegBin); MLV sem7 (GLM part) |
@@ -79,7 +80,7 @@ moved to §4.3.3 (Newton–Raphson).
 
 | PRML | Concept | Practice |
 |---|---|---|
-| §5.1–5.3 | MLP, backpropagation | **MLT HW-3 bonus 2** (sigmoid backprop); NN Practice_03 `two_layer_net`, Practice_04 `FullyConnectedNets`; MSU P4 (computational graph from scratch); MLV sem3 (autograd, done 2025); MLT P-5 |
+| §5.1–5.3 | MLP, backpropagation | **MLT HW-3 bonus 2** (sigmoid backprop); NN Practice_03 `two_layer_net`, Practice_04 `FullyConnectedNets`; MSU P4 (computational graph from scratch); MLV sem3 (autograd, done 2025); MLT P-5; HSE С7 (backprop, dropout, SGD vs GD, by hand) |
 | §5.5 | weight decay, early stopping, invariance by augmentation, convolutional nets | MLT P-7 (L1/L2 in NNs, augmentation); MLT HW-4 ex. 2–3 (done 2023), HW-4 bonus CutMix (triage); NN Practice_04 `Dropout`, Practice_05; MLV sem15; MSU P4 part 3 (conv, max-pool layers) |
 | §5.6–5.7 | mixture density networks, Bayesian neural networks | no notebook |
 
@@ -97,7 +98,7 @@ moved to §4.3.3 (Newton–Raphson).
 
 | PRML | Concept | Practice |
 |---|---|---|
-| §8.1–8.2 | Bayesian networks, d-separation | no notebook; PRML exercises only |
+| §8.1–8.2 | Bayesian networks, conditional independence | **HSE С1** (Bayesian network vs naive Bayes on a 15-row table, cross-validated; conditional-independence algebra). No notebook |
 | §8.3 | Markov random fields, Hammersley–Clifford, image restoration | **ML2 07A/07 (7.1, 7.3, 7.4)**; ML2 07A/09 (6.1\*); reading: ML2 07A/tutorials `basics_markov_fields` |
 | §8.4.1–8.4.4 | sum-product on chains and trees | **ML2 04/01 (1.1, 1.2)** (imputation by belief propagation); reading: ML2 04/tutorials `belief_propagation_in_a_chain`, `_in_a_tree` |
 | §8.4.5 | max-sum | ML2 04/01 section III; reading: ML2 04/tutorials `posterior_maximisation_for_chain`, `_for_a_tree` |
@@ -134,8 +135,8 @@ moved to §4.3.3 (Newton–Raphson).
 
 | PRML | Concept | Practice |
 |---|---|---|
-| §14.1–14.2 | committees, bagging | MLT P-8; MLT HW-5 ex. 1 (done 2023); MLV sem11 (bagging, random forest); MSU P3 tasks 4–5 |
-| §14.3 | boosting, exponential loss | **MLT HW-5 bonus 3** (AdaBoost from scratch); MLT P-10; MLV sem11–12 (+ sem12 homework: ComBoost for regression); MSU P3 task 6 |
+| §14.1–14.2 | committees, bagging | MLT P-8; MLT HW-5 ex. 1 (done 2023); MLV sem11 (bagging, random forest); MSU P3 tasks 4–5; HSE С3.2 (bagged kNN and OOB error by hand), С3.3 (ensemble variance when trees are correlated) |
+| §14.3 | boosting, exponential loss | **MLT HW-5 bonus 3** (AdaBoost from scratch); MLT P-10; MLV sem11–12 (+ sem12 homework: ComBoost for regression); MSU P3 task 6; HSE С4 (gradient boosting by hand; Newton variant) |
 | §14.4 | tree-based models | **MSU P3 task 3** (decision tree from scratch); MLV sem9 (informativeness criteria; homework: Gini) |
 | §14.5.1 | mixtures of linear regressions | **ML2 06/04 (4.2, 4.4)** (2025 attempt exists: check it first); ML2 06/04 (4.1, 4.3) |
 | §14.5.3 | mixtures of experts | MLV sem11 (Mixture of Experts part) |
@@ -162,3 +163,9 @@ Everything else in these courses, so nothing is dropped silently:
   walkthrough), sem24, sem27 (title only), sem28–30 (LLM, machine translation); MSU contests.
 - **Pen-and-paper theory sheets** (MSU `homeworks-theory`, `ML15/ML16/homeworks` PDFs): the PRML
   exercises already cover this ground.
+- **HSE beyond the seminar sheets:** С5–С6 and lectures 5–6 are causal inference (double ML,
+  ATE, S/T-learners, IPW, LATE): not in PRML, a possible topic after it. The homework is a
+  semester research report on simulated data (the Kaggle track covers that workflow). Exams
+  (some with solutions) repeat the seminar style. Lecture 8 (RNN) is deep learning.
+  `2. Решающие деревья.py` is an sklearn walkthrough. Lectures: read one only when a seminar
+  problem needs it.
