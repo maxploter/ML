@@ -25,6 +25,7 @@ Solved (date):
 - 1.22 (25.10.2026)
 - 1.25 (25.10.2026)
 - 1.26 (25.10.2026)
+- 1.27 (27.10.2026; q → 0 part as plan only)
 
 Open: 1.2 (regularised version of 1.1).
 
@@ -1205,3 +1206,61 @@ add-and-subtract trick gives the bias–variance decomposition in §3.2.
 
 In practice: the irreducible noise term is why validation MSE never reaches zero; it's the
 regression analogue of the Bayes error in Ex. 1.21.
+
+## Exercise 1.27 (\*\*) www
+
+> Consider the expected loss for regression problems under the L_q loss function given by
+> (1.91). Write down the condition that y(x) must satisfy in order to minimize E[L_q]. Show
+> that, for q = 1, this solution represents the conditional median, i.e., the function y(x)
+> such that the probability mass for t < y(x) is the same as for t ≥ y(x). Also show that the
+> minimum expected L_q loss for q → 0 is given by the conditional mode, i.e., by the function
+> y(x) equal to the value of t that maximizes p(t|x) for each x.
+
+Context: §1.5.5, Minkowski loss (1.91), Fig. 1.28–1.29. q = 2 gives the mean (Ex. 1.25).
+
+Handwritten original: [`ex-1.27-handwritten-1.png`](ex-1.27-handwritten-1.png) (condition,
+q = 1 split), [`ex-1.27-handwritten-2.png`](ex-1.27-handwritten-2.png) (median, q → 0 attempt).
+
+### The condition (general q)
+
+One x at a time, as in Ex. 1.25. ∂/∂y |y − t|^q = q |y − t|^(q−1) sign(y − t), so
+
+δE/δy(x) = q ∫ |y(x) − t|^(q−1) sign(y(x) − t) p(x, t) dt = 0.
+
+For general q this is the answer; it is not solved for y.
+
+### q = 1: the median
+
+|y − t|⁰ = 1, so ∫ sign(y(x) − t) p(x, t) dt = 0. Split the t-axis at t = y(x) (sign +1 below,
+−1 above):
+
+(∫ from −∞ to y(x) of p(x, t) dt) − (∫ from y(x) to +∞ of p(x, t) dt) = 0.
+
+Divide by p(x) (product rule): P(t < y(x) | x) = P(t > y(x) | x). The two add up to 1, so each
+is 1/2: y(x) is the point with half of the probability of t on each side, which is the
+definition of the median of p(t|x). ∎
+
+### q → 0: the mode (plan only)
+
+The derivative route breaks down: |y − t|^(q−1) → 1/|y − t| blows up at t = y. Look at the loss
+itself instead (Fig. 1.29): as q → 0, |y − t|^q → 1 for every t ≠ y and is 0 only at t = y.
+So the loss is "1 unless you hit t exactly", and E[L_q] ≈ 1 − (probability that t falls in a
+tiny window around y) ≈ 1 − p(y|x)·(window width). That is smallest where p(t|x) is highest:
+the mode. The regression version of 0-1 loss → largest posterior (Ex. 1.22).
+
+### Review notes (professor)
+
+Condition and q = 1 his own, after several corrections: he first dropped the sign
+(∂|y − t|/∂y = sign(y − t)) and y vanished from the equation; split over x instead of t; wrote
+the two pieces as separate equations instead of one sum. Hard steps for him: why the
+conditional p(t|x) appears (only to read the two sides as probabilities that add up to 1; the
+split point doesn't move), and "how does this follow to be the median" (the equality is the
+definition of the median). Integral limits in my messages ("_" and "^") confused him: write
+them in words in the terminal. q → 0: he tried the derivative (q ∫ 1/(y − t) p dt = 0, algebra
+fine, but the integral diverges); plan given by the tutor.
+
+Background reading: the optimality property of the median,
+https://en.wikipedia.org/wiki/Median#Optimality_property
+
+In practice: MSE predicts the mean, MAE the median (robust to outliers); a classifier's argmax
+is the mode.
