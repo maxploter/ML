@@ -34,6 +34,15 @@ dN/dx = 0 gives x = μ); 1.13 (variance estimate around the true μ is unbiased:
 (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12); 1.23 (general loss + priors: choose j minimizing
 Σ_k L_kj p(x|C_k) p(C_k)); 1.24 (reject option: θ = 1 − λ).
 
+Gaps found, to practise (practice in [`../practice-map.md`](../practice-map.md), rows §1.2.5/§1.5.5):
+
+- Which loss gives which prediction (Ex. 1.25–1.27): squared → mean, absolute → median,
+  q → 0 → mode. Why: each t pulls y with force q|y − t|^(q−1); q sets how much far points
+  count. Read the central-tendency page, then ML2 03/07 (OLS vs LAD).
+- Derivative of |u| is sign(u) (Ex. 1.27).
+- Integrating over t when p(x, t) still depends on t: sum rule ∫ p(x, t) dt = p(x), product
+  rule p(x, t) = p(t|x)p(x) (Ex. 1.25–1.26). Comes back in Ch. 2.
+
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
 D^M message is in §1.4).
 
