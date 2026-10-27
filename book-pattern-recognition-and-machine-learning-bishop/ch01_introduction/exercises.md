@@ -41,7 +41,9 @@ Gaps found, to practise (practice in [`../practice-map.md`](../practice-map.md),
   count. Read the central-tendency page, then ML2 03/07 (OLS vs LAD).
 - Derivative of |u| is sign(u) (Ex. 1.27).
 - Integrating over t when p(x, t) still depends on t: sum rule ∫ p(x, t) dt = p(x), product
-  rule p(x, t) = p(t|x)p(x) (Ex. 1.25–1.26). Comes back in Ch. 2.
+  rule p(x, t) = p(t|x)p(x) (Ex. 1.25–1.26). Comes back in Ch. 2. Theory: Гнеденко, «Курс теории
+  вероятностей» (1965), §23 «Многомерные функции распределения» (pp. 138–146: joint and marginal
+  densities), then §9 (conditional probability, p. 54) if needed.
 
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
 D^M message is in §1.4).
