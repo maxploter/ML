@@ -1303,8 +1303,9 @@ the maximum entropy (the same result as Bishop's Lagrange-multiplier route, (1.9
 
 ### Review notes (professor)
 
-Key idea his after one hint (λᵢ = pᵢ, uᵢ = 1/pᵢ). On the page: both inequalities written as ≥,
-the direction for a convex ln; ln is concave, so take f = −ln (convex) to use (1.115) as stated.
+Key idea his after one hint (λᵢ = pᵢ, uᵢ = 1/pᵢ). First version had both inequalities as ≥ (the
+direction for a convex ln); he corrected them to ≤ (ln is concave; equivalently f = −ln is
+convex, which uses (1.115) as stated).
 Σ pᵢ · 1/pᵢ is = M, not ≥. He used log₂; the exercise asks for ln (same proof, different units).
 His question "what is x here?": the xᵢ in Jensen are just points, here 1/pᵢ, not the random
 variable x.
