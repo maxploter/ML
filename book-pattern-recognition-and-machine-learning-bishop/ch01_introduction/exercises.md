@@ -34,7 +34,7 @@ Open: 1.2 (regularised version of 1.1).
 Skipped, plan correct (approach checked, algebra not written out): 1.9 (mode of the Gaussian:
 dN/dx = 0 gives x = μ); 1.13 (variance estimate around the true μ is unbiased:
 (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12); 1.23 (general loss + priors: choose j minimizing
-Σ_k L_kj p(x|C_k) p(C_k)); 1.24 (reject option: θ = 1 − λ).
+Σ_k L_kj p(x|C_k) p(C_k)); 1.24 (reject option: θ = 1 − λ); 1.31 (H[x, y] ≤ H[x] + H[y] via mutual information = KL ≥ 0).
 
 Gaps found, to practise (practice in [`../practice-map.md`](../practice-map.md), rows §1.2.5/§1.5.5):
 
@@ -1353,3 +1353,32 @@ weights. That's also why KL is not symmetric.
 
 In practice: with q = N(0, 1) this is the VAE KL term, ½(σ² + μ² − 1) − ln σ. Mean error is
 penalised in units of q's width; width error by ln(s/σ) + σ²/(2s²) − 1/2.
+
+## Exercise 1.31 (\*\*) www (skipped, plan correct)
+
+> Consider two variables x and y having joint distribution p(x, y). Show that the differential
+> entropy of this pair of variables satisfies H[x, y] ≤ H[x] + H[y] with equality if, and only
+> if, x and y are statistically independent.
+
+Context: §1.6.1, mutual information (1.120)–(1.121).
+
+Plan (worked through in discussion, 29.10.2026; no handwritten page):
+
+1. To show A ≤ B, show B − A ≥ 0: look at H[x] + H[y] − H[x, y].
+2. Write all three as averages under the same p(x, y): by the sum rule p(x) = ∫ p(x, y) dy,
+   H[x] = −∫∫ p(x, y) ln p(x) dx dy (only the weight is rewritten; the p(x) inside the log stays).
+   Same for H[y].
+3. Combine: H[x] + H[y] − H[x, y] = ∫∫ p(x, y) ln( p(x, y) / (p(x)p(y)) ) dx dy
+   = KL(p(x, y) ‖ p(x)p(y)) = I[x, y], the mutual information (1.120).
+4. KL ≥ 0, with equality iff p(x, y) = p(x)p(y), i.e. independence. ∎
+
+Review notes: joint = "x takes this value and y that value". He first tried a pointwise
+comparison p(x, y) ≥ p(x)p(y); it fails (both integrate to 1, so the joint is bigger in some
+places and smaller in others; perfectly dependent binary x = y shows it). The inequality holds
+only on average, which is what KL ≥ 0 says. Questions "why rewrite p(x) as a double integral?"
+and "why not inside the log?": the sum rule (1.10)/(1.31), used only where it moves toward one
+average under p(x, y).
+
+In practice: I[x, y] = how much y tells you about x; 0 iff independent, and it catches any
+dependence, not only linear (unlike correlation). Information gain in decision trees is I[x, y]
+(HSE С3.1 by hand).
