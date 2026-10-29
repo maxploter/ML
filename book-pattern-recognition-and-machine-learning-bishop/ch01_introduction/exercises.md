@@ -49,8 +49,7 @@ Gaps found, to practise (practice in [`../practice-map.md`](../practice-map.md),
 
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
 D^M message is in §1.4); 1.28 (h(x) = −log p from a functional equation; the fact itself is in
-the text and is what gets used); 1.37 (H[x, y] = H[y|x] + H[x], one line of the product rule,
-already used in 1.31 and 1.33).
+the text and is what gets used).
 
 ---
 
