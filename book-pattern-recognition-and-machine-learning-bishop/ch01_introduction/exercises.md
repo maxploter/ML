@@ -1362,7 +1362,8 @@ penalised in units of q's width; width error by ln(s/σ) + σ²/(2s²) − 1/2.
 
 Context: §1.6.1, mutual information (1.120)–(1.121).
 
-Plan (worked through in discussion, 29.10.2026; no handwritten page):
+Plan (worked through in discussion, 29.10.2026). His page: [`ex-1.31-handwritten.png`](ex-1.31-handwritten.png)
+(the KL identification; arrows mark his swap of the arguments).
 
 1. To show A ≤ B, show B − A ≥ 0: look at H[x] + H[y] − H[x, y].
 2. Write all three as averages under the same p(x, y): by the sum rule p(x) = ∫ p(x, y) dy,
@@ -1372,7 +1373,10 @@ Plan (worked through in discussion, 29.10.2026; no handwritten page):
    = KL(p(x, y) ‖ p(x)p(y)) = I[x, y], the mutual information (1.120).
 4. KL ≥ 0, with equality iff p(x, y) = p(x)p(y), i.e. independence. ∎
 
-Review notes: joint = "x takes this value and y that value". He first tried a pointwise
+Review notes: on the page the first line has both a leading minus and the ratio
+p(x, y)/(p(x)p(y)); one or the other, not both (with the minus, the ratio flips, matching (1.113)'s
+−∫ p ln(q/p)). He found the right order himself: KL(p(x, y) ‖ p(x)p(y)) — the first argument is the
+distribution the average is taken under. Joint = "x takes this value and y that value". He first tried a pointwise
 comparison p(x, y) ≥ p(x)p(y); it fails (both integrate to 1, so the joint is bigger in some
 places and smaller in others; perfectly dependent binary x = y shows it). The inequality holds
 only on average, which is what KL ≥ 0 says. Questions "why rewrite p(x) as a double integral?"
