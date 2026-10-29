@@ -1395,7 +1395,8 @@ dependence, not only linear (unlike correlation). Information gain in decision t
 
 Context: §1.6, conditional entropy (1.111)–(1.112).
 
-Plan (his, from discussion on 29.10.2026; no handwritten page):
+Plan (his, from discussion on 29.10.2026). His page: [`ex-1.33-handwritten.png`](ex-1.33-handwritten.png)
+(the definition only; it mixes Σ with dx dy — x, y are discrete here, so sums only, and ln):
 
 1. H[y|x] = −Σₓ Σᵧ p(x, y) ln p(y|x). Every term is ≥ 0 (p(y|x) ≤ 1, so ln p(y|x) ≤ 0), so a
    total of 0 forces every term to be 0.
