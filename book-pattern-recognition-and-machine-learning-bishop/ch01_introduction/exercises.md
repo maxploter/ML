@@ -34,7 +34,7 @@ Open: 1.2 (regularised version of 1.1).
 Skipped, plan correct (approach checked, algebra not written out): 1.9 (mode of the Gaussian:
 dN/dx = 0 gives x = μ); 1.13 (variance estimate around the true μ is unbiased:
 (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12); 1.23 (general loss + priors: choose j minimizing
-Σ_k L_kj p(x|C_k) p(C_k)); 1.24 (reject option: θ = 1 − λ); 1.31 (H[x, y] ≤ H[x] + H[y] via mutual information = KL ≥ 0).
+Σ_k L_kj p(x|C_k) p(C_k)); 1.24 (reject option: θ = 1 − λ); 1.31 (H[x, y] ≤ H[x] + H[y] via mutual information = KL ≥ 0); 1.33 (H[y|x] = 0 ⇔ y = f(x)).
 
 Gaps found, to practise (practice in [`../practice-map.md`](../practice-map.md), rows §1.2.5/§1.5.5):
 
@@ -1386,3 +1386,31 @@ average under p(x, y).
 In practice: I[x, y] = how much y tells you about x; 0 iff independent, and it catches any
 dependence, not only linear (unlike correlation). Information gain in decision trees is I[x, y]
 (HSE С3.1 by hand).
+
+## Exercise 1.33 (\*\*) (skipped, plan correct)
+
+> Consider two discrete variables x and y, and suppose that the conditional entropy H[y|x] is
+> zero. Show that, for all values of x such that p(x) > 0, the variable y must be a function of
+> x, in other words for each x there is only one value of y such that p(y|x) ≠ 0.
+
+Context: §1.6, conditional entropy (1.111)–(1.112).
+
+Plan (his, from discussion on 29.10.2026; no handwritten page):
+
+1. H[y|x] = −Σₓ Σᵧ p(x, y) ln p(y|x). Every term is ≥ 0 (p(y|x) ≤ 1, so ln p(y|x) ≤ 0), so a
+   total of 0 forces every term to be 0.
+2. Cells with p(x, y) = 0 contribute 0 · ln 0 = 0 (p ln p → 0). Wherever p(x, y) > 0, the term is
+   0 only if ln p(y|x) = 0, i.e. p(y|x) = 1.
+3. For a fixed x the p(y|x) sum to 1, so one y has p(y|x) = 1 and all others 0: y is a function
+   of x. (p(x) > 0 is needed only because p(y|x) = p(x, y)/p(x) is undefined otherwise.) ∎
+
+Check question (his answer): the converse also holds. If y = f(x), then p(f(x)|x) = 1 and all
+other pairs have p(x, y) = 0, so H[y|x] = 0. His own remark: f need not be one-to-one for this;
+if it isn't, H[x|y] > 0 while H[y|x] = 0 (conditional entropy is not symmetric).
+
+Review notes: he first assumed the joint can't be zero (it can: pairs that never occur), and
+worried about ln 0 = −∞ (cancelled by the zero weight). The missing step was "all terms ≥ 0",
+which is what lets a zero sum force zero terms.
+
+In practice: H[y|x] = 0 means the label is fully determined by the features (no irreducible
+noise; the classification analogue of var[t|x] = 0 in Ex. 1.26).
