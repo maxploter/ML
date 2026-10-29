@@ -14,7 +14,7 @@ in its own homework notebook, under the bonus heading.
 | Bonus | Task | Decision | When |
 |---|---|---|---|
 | HW-1 B1 | kNN: show the true-class and wrong-class probabilities of misclassified digits | **Solve** | with PRML §2.5.2 (kNN posteriors p(C_k\|x) = K_k/K); reuses §1.5 decision theory |
-| HW-1 B2 | NYC taxi Kaggle: beat RMSE 3.04 (late submissions still score) | **Solve** | first Kaggle weekend, warm-up before IEEE-CIS: pandas cleaning, features, RandomForest |
+| HW-1 B2 | NYC taxi Kaggle: beat RMSE 3.04 (late submissions still score) | Skip (changed 29.10.2026) | not a needed warm-up: IEEE-CIS (fraud, the target domain) trains the same pandas/feature skills directly |
 | HW-2 B1 | t-SNE / UMAP on MNIST vs PCA | **Solve** | January, with HW-2 B3: sklearn/umap practice |
 | HW-2 B2 | train a model on the t-SNE/UMAP output | **Solve** | right after B1: sklearn pipelines, comparing models |
 | HW-2 B3 | K-means from scratch in numpy, loss per step, animation | **Solve** | January, after PRML Ch. 4 (PRML §9.1 is the theory) |

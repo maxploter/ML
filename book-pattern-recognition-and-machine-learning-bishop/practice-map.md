@@ -158,7 +158,7 @@ Everything else in these courses, so nothing is dropped silently:
 - **Workflow and tooling, no PRML concept:** ML2 00 (pandas), ML2 01/image-generation, ML2 06
   `covariance_estimation` (reference code, no exercises), ML2 02/03 (QQ-plot envelopes; Blom ch.
   13–14 if interested); MSU P1 (missing data); MLT P-1–P-2 (labs, done 2023); MLT HW-1 bonus 2
-  (NYC taxi: the Kaggle warm-up).
+  (NYC taxi: dropped as a warm-up; IEEE-CIS trains the same skills in the target domain).
 - **Not doable or empty:** MLT HW-5 bonus 1–2 (closed in-class leaderboard); MLV sem20 (homework
   walkthrough), sem24, sem27 (title only), sem28–30 (LLM, machine translation); MSU contests.
 - **Pen-and-paper theory sheets** (MSU `homeworks-theory`, `ML15/ML16/homeworks` PDFs): the PRML
