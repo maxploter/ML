@@ -27,6 +27,7 @@ Solved (date):
 - 1.26 (25.10.2026)
 - 1.27 (27.10.2026; q → 0 part as plan only)
 - 1.29 (29.10.2026)
+- 1.30 (29.10.2026)
 
 Open: 1.2 (regularised version of 1.1).
 
@@ -1312,3 +1313,43 @@ variable x.
 
 In practice: entropy measures uncertainty; uniform = maximum. Cross-entropy loss (§4.3) is built on
 the same quantity.
+
+## Exercise 1.30 (\*\*)
+
+> Evaluate the Kullback-Leibler divergence (1.113) between two Gaussians p(x) = N(x|μ, σ²) and
+> q(x) = N(x|m, s²).
+
+Context: §1.6.1, KL divergence (1.113); Gaussian (1.46).
+
+Handwritten original: [`ex-1.30-handwritten.png`](ex-1.30-handwritten.png).
+
+### Solution
+
+KL(p‖q) = −∫ p(x) ln(q(x)/p(x)) dx. The normalising constants and the log of the exponentials give
+
+ln(q(x)/p(x)) = ln(σ/s) − (x − m)²/(2s²) + (x − μ)²/(2σ²)
+
+(the log eats the exp: ln(a·e^b) = ln a + b). Each term integrated against p(x) is an average
+under p:
+
+KL = −ln(σ/s) + E_p[(x − m)²]/(2s²) − E_p[(x − μ)²]/(2σ²).
+
+- E_p[(x − μ)²] = σ², so the last term is 1/2.
+- E_p[(x − m)²] = E[((x − μ) + (μ − m))²] = σ² + 2(μ − m)·E[x − μ] + (μ − m)² = σ² + (μ − m)²
+  (cross term 0, as in Ex. 1.26).
+
+**KL(p‖q) = ln(s/σ) + (σ² + (μ − m)²)/(2s²) − 1/2.** ∎
+
+Check: m = μ, s = σ gives 0 + 1/2 − 1/2 = 0 (KL = 0 iff p = q).
+
+### Review notes (professor)
+
+His own algebra with sign fixes on the way: q's mean written as μ instead of m at first; the minus
+missing in p's exponent; signs inside the log flipped; distributing the overall minus. Main
+conceptual error: took E[(x − m)²] = s². The average is under p (weights p(x)); q only enters
+inside the log, and m is just a fixed point on the axis. His questions "why an expectation under
+p when the term comes from q?" were the useful ones: q decides what is averaged, p decides the
+weights. That's also why KL is not symmetric.
+
+In practice: with q = N(0, 1) this is the VAE KL term, ½(σ² + μ² − 1) − ln σ. Mean error is
+penalised in units of q's width; width error by ln(s/σ) + σ²/(2s²) − 1/2.
