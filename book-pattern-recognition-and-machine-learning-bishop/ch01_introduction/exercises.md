@@ -26,6 +26,7 @@ Solved (date):
 - 1.25 (25.10.2026)
 - 1.26 (25.10.2026)
 - 1.27 (27.10.2026; q → 0 part as plan only)
+- 1.29 (29.10.2026)
 
 Open: 1.2 (regularised version of 1.1).
 
@@ -46,7 +47,8 @@ Gaps found, to practise (practice in [`../practice-map.md`](../practice-map.md),
   densities), then §9 (conditional probability, p. 54) if needed.
 
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
-D^M message is in §1.4).
+D^M message is in §1.4); 1.28 (h(x) = −log p from a functional equation; the fact itself is in
+the text and is what gets used).
 
 ---
 
@@ -1275,3 +1277,37 @@ https://en.wikipedia.org/wiki/Median#Optimality_property
 
 In practice: MSE predicts the mean, MAE the median (robust to outliers); a classifier's argmax
 is the mode.
+
+## Exercise 1.29 (\*) www
+
+> Consider an M-state discrete random variable x, and use Jensen's inequality in the form
+> (1.115) to show that the entropy of its distribution p(x) satisfies H[x] ≤ ln M.
+
+Context: §1.6, entropy (1.93); §1.6.1, convex functions and Jensen's inequality (1.113)–(1.115).
+
+Handwritten original: [`ex-1.29-handwritten.png`](ex-1.29-handwritten.png).
+
+### Solution
+
+(1.115) for convex f: f(Σᵢ λᵢ uᵢ) ≤ Σᵢ λᵢ f(uᵢ), with λᵢ ≥ 0, Σᵢ λᵢ = 1.
+
+Take λᵢ = pᵢ (non-negative, sum to 1), uᵢ = 1/pᵢ, and f(u) = −ln u, which is convex
+(f''(u) = 1/u² > 0). Then
+
+−ln(Σᵢ pᵢ · 1/pᵢ) ≤ Σᵢ pᵢ · (−ln(1/pᵢ)), i.e. −ln M ≤ −H[x],
+
+since Σᵢ pᵢ · 1/pᵢ = M exactly and H[x] = Σᵢ pᵢ ln(1/pᵢ). Multiply by −1: H[x] ≤ ln M. ∎
+
+Equality in Jensen holds only when all uᵢ are equal, i.e. pᵢ = 1/M: the uniform distribution has
+the maximum entropy (the same result as Bishop's Lagrange-multiplier route, (1.98)–(1.100)).
+
+### Review notes (professor)
+
+Key idea his after one hint (λᵢ = pᵢ, uᵢ = 1/pᵢ). On the page: both inequalities written as ≥,
+the direction for a convex ln; ln is concave, so take f = −ln (convex) to use (1.115) as stated.
+Σ pᵢ · 1/pᵢ is = M, not ≥. He used log₂; the exercise asks for ln (same proof, different units).
+His question "what is x here?": the xᵢ in Jensen are just points, here 1/pᵢ, not the random
+variable x.
+
+In practice: entropy measures uncertainty; uniform = maximum. Cross-entropy loss (§4.3) is built on
+the same quantity.
