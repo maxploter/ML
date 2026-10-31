@@ -11,6 +11,18 @@ Don't commit the PDF to this repo. Link to it instead.
   https://microsoft.com/en-us/research/wp-content/uploads/2016/05/prml-errata-2nd-20110921.pdf
   (e.g. (1.149) in Ex. 1.20 should be exp(−ε²/σ²), not exp(−3ε²/2σ²)).
 
+## Plan and progress
+
+Target: the whole book by the end of May 2027 (set 31.10.2026), in two depths.
+
+- **Full** (full exercise list, about 3 weeks each): Ch. 2, 3, 4 (in this order, right after
+  Ch. 1), 5, 9, 14.
+- **Light** (read the chapter, solve the **www** exercises and the ones later chapters reuse,
+  about 1–1.5 weeks each): Ch. 6, 7, 8, 10, 11, 12, 13.
+
+Ch. 1 took 27.09–31.10.2026: five weeks by the calendar, about 2.5 weeks of steady work.
+Ch. 2 is the checkpoint: if it takes much more than 4 weeks, the target is re-estimated.
+
 ## Exercises
 
 Each exercise is marked with a difficulty: (\*) takes a few minutes, (\*\*) up to about an hour,
