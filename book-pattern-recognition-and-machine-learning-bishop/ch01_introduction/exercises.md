@@ -47,6 +47,8 @@ Gaps found, to practise (practice in [`../practice-map.md`](../practice-map.md),
   rule p(x, t) = p(t|x)p(x) (Ex. 1.25–1.26). Comes back in Ch. 2. Theory: Гнеденко, «Курс теории
   вероятностей» (1965), §23 «Многомерные функции распределения» (pp. 138–146: joint and marginal
   densities), then §9 (conditional probability, p. 54) if needed.
+- Indeterminate forms such as 0 · ∞ (Ex. 1.39: p ln p as p → 0). Rewrite as a quotient,
+  ln p / (1/p), and use L'Hôpital's rule; the limit is 0, which is why 0 ln 0 = 0 in entropy sums.
 
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
 D^M message is in §1.4); 1.28 (h(x) = −log p from a functional equation; the fact itself is in
