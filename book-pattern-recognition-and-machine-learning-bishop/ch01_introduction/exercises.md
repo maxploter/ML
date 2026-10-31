@@ -1451,6 +1451,12 @@ expansion of the log already assumed ln, since only ln undoes exp. At the consta
 first. Notation: N(x|μ, σ²), the second argument is the variance. Same technique as Ex. 1.30
 (average a log-Gaussian under a Gaussian).
 
+Check question (σ = 1 vs σ = 2): he first took a ratio of entropies (not meaningful: entropy
+has units and can be negative), then got H[x] − H[y] = ½ ln(1/4) = −ln 2. Doubling σ adds
+ln 2 nats = exactly 1 bit. Why μ is absent: entropy uses only the heights p(x) takes, not x
+itself; a shift moves the curve without changing its shape, so H[x + c] = H[x] for any
+distribution (he had the fact; the reason was given).
+
 In practice: entropy grows with ln σ (wider = more uncertain), and is independent of μ. Unlike
 discrete entropy it can be negative (σ² < 1/(2πe)). Among all densities with variance σ² the
 Gaussian has the largest entropy (§1.6), which is one reason it is the default noise model.
@@ -1470,6 +1476,10 @@ Plan (his, from discussion on 31.10.2026; no page):
 3. Second integral: +∫∫ p(x, y) ln p(x) dx dy. Integrate over y first: ∫ p(x, y) dy = p(x) by
    the sum rule, leaving ∫ p(x) ln p(x) dx = −H[x].
 4. H[y|x] = H[x, y] − H[x], i.e. H[x, y] = H[y|x] + H[x]. ∎
+
+Check question (his answer): if x, y are independent, p(y|x) = p(y), so H[y|x] = H[y] and
+H[x, y] = H[x] + H[y], the equality case of Ex. 1.31. His link to Ex. 1.10 (variances of
+independent variables add) is the right analogy.
 
 Review notes: step 3's sum-rule integration was the missing piece in his plan (same move as Ex.
 1.31: a joint weight becomes a marginal only after integrating out the other variable). His
