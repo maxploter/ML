@@ -29,6 +29,7 @@ Solved (date):
 - 1.29 (29.10.2026)
 - 1.30 (29.10.2026)
 - 1.35 (31.10.2026)
+- 1.39 (31.10.2026; arithmetic done by the tutor at his request)
 
 Open: 1.2 (regularised version of 1.1).
 
@@ -1490,3 +1491,64 @@ remark: the product rule written both ways, p(y|x)p(x) = p(x|y)p(y), is Bayes' t
 In practice: describing x and y together = describing x, then y given x. Same chain as
 ln p(x, y) = ln p(x) + ln p(y|x), which is how log-likelihoods of sequences and graphical models
 (Ch. 8) are built.
+
+## Exercise 1.39 (\*\*\*)
+
+> Consider two binary variables x and y having the joint distribution given in Table 1.3.
+> Evaluate the following quantities: (a) H[x] (b) H[y] (c) H[y|x] (d) H[x|y] (e) H[x, y]
+> (f) I[x, y]. Draw a diagram to show the relationship between these various quantities.
+
+Table 1.3: p(0, 0) = 1/3, p(0, 1) = 1/3, p(1, 0) = 0, p(1, 1) = 1/3 (x is the row, y the column).
+
+Context: §1.6, entropy (1.93), conditional entropy (1.111)–(1.112); §1.6.1, mutual information
+(1.120)–(1.121).
+
+Worked in discussion on 31.10.2026 (no page).
+
+### Solution
+
+Marginals by the sum rule (rows for x, columns for y): p(x = 0) = 2/3, p(x = 1) = 1/3;
+p(y = 0) = 1/3, p(y = 1) = 2/3. The zero cell contributes 0 · ln 0 = 0 to every sum
+(lim p ln p = 0 as p → 0).
+
+| Quantity | Exact | Nats |
+|---|---|---|
+| H[x] | ln 3 − (2/3) ln 2 | 0.637 |
+| H[y] | ln 3 − (2/3) ln 2 | 0.637 |
+| H[y\|x] | (2/3) ln 2 | 0.462 |
+| H[x\|y] | (2/3) ln 2 | 0.462 |
+| H[x, y] | ln 3 | 1.099 |
+| I[x, y] | ln 3 − (4/3) ln 2 | 0.174 |
+
+H[y|x]: given x = 0, y is a fair coin (entropy ln 2); given x = 1, y = 1 for sure (entropy 0);
+weighted by p(x): (2/3) ln 2. H[x|y] the same by columns. H[x, y] = ln 3 (three equal non-zero
+cells). Checks: H[x] + H[y|x] = ln 3 = H[x, y] (1.112); H[x] + H[y] − H[x, y] = H[x] − H[x|y]
+= 0.174.
+
+Diagram: two overlapping circles, H[x] and H[y]. Overlap = I[x, y]; each circle minus the
+overlap = the conditional entropy (H[x|y] = H[x] − I); the union = H[x, y] = H[x] + H[y] − I.
+
+```
+        H[x] = 0.637          H[y] = 0.637
+   ┌─────────────┬───────┬─────────────┐
+   │   H[x|y]    │ I[x,y]│   H[y|x]    │
+   │   0.462     │ 0.174 │   0.462     │
+   └─────────────┴───────┴─────────────┘
+        whole bar = H[x,y] = 1.099
+```
+
+### Review notes (professor)
+
+His: the setup of every term (marginals from row/column sums, conditional = cell / row or column
+sum, joint weights, the zero cell dropping out, both routes to H[x, y] as a cross-check), and the
+diagram (overlap = I, union = sum − overlap, conditional = circle − overlap). Tutor: the
+arithmetic, at his request (only ln 2 and ln 3 appear). Questions on the way: 0 · (−∞) is an
+indeterminate form, settled by the limit (added to the gaps list); I[x, y] is mutual
+information, not an indicator function; entropies are not probabilities and need not be ≤ 1
+(bound: ln M, here ln 4 for the pair).
+
+Reading the numbers: the zero cell looks like strong dependence, yet x removes only about a
+quarter of the uncertainty about y (0.174 of 0.637).
+
+In practice: H[y] − H[y|x] is the information gain of splitting on x in a decision tree (HSE
+С3.1 by hand).
