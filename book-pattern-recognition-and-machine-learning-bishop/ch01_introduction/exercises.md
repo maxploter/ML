@@ -30,6 +30,7 @@ Solved (date):
 - 1.30 (29.10.2026)
 - 1.35 (31.10.2026)
 - 1.39 (31.10.2026; arithmetic done by the tutor at his request)
+- 1.41 (31.10.2026)
 
 Open: 1.2 (regularised version of 1.1).
 
@@ -1552,3 +1553,39 @@ quarter of the uncertainty about y (0.174 of 0.637).
 
 In practice: H[y] − H[y|x] is the information gain of splitting on x in a decision tree (HSE
 С3.1 by hand).
+
+## Exercise 1.41 (\*) www
+
+> Using the sum and product rules of probability, show that the mutual information I[x, y]
+> satisfies the relation (1.121).
+
+Context: §1.6.1, mutual information (1.120)–(1.121); sum rule (1.10), product rule (1.11).
+
+Worked in discussion on 31.10.2026 (no page).
+
+### Solution
+
+I[x, y] = −∫∫ p(x, y) ln( p(x)p(y) / p(x, y) ) dx dy (1.120).
+
+Product rule in the log: p(x, y) = p(x) p(y|x), so p(x)p(y)/p(x, y) = p(y)/p(y|x) and
+
+I[x, y] = −∫∫ p(x, y) ln p(y) dx dy + ∫∫ p(x, y) ln p(y|x) dx dy.
+
+- Second term: −H[y|x] by (1.111).
+- First term: ln p(y) does not depend on x, so it comes out of the x-integral, and
+  ∫ p(x, y) dx = p(y) by the sum rule. That leaves −∫ p(y) ln p(y) dy = H[y].
+
+So I[x, y] = H[y] − H[y|x]. The same with p(x, y) = p(y) p(x|y) gives H[x] − H[x|y]. ∎
+
+### Review notes (professor)
+
+His plan by voice, correct: product rule inside the log, p(x) cancels, split into two integrals.
+The step he had skipped in Ex. 1.31 and 1.37 (and first here too) is the sum-rule line: a double
+integral weighted by the joint is H[y] only because ln p(y) has no x in it, so the x-integral
+acts on p(x, y) alone and gives p(y). He first read it off as "that's H[y]" by pattern; asked
+why, he gave the step himself (integrate over x, the joint becomes p(y), the sum rule).
+
+Numbers from Ex. 1.39: H[y] − H[y|x] = H[x] − H[x|y] = 0.174 nats.
+
+In practice: I[x, y] = reduction in uncertainty about y from knowing x = information gain of a
+decision-tree split; symmetric although H[x|y] ≠ H[y|x] in general.
