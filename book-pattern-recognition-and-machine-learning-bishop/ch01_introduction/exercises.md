@@ -28,6 +28,7 @@ Solved (date):
 - 1.27 (27.10.2026; q → 0 part as plan only)
 - 1.29 (29.10.2026)
 - 1.30 (29.10.2026)
+- 1.35 (31.10.2026)
 
 Open: 1.2 (regularised version of 1.1).
 
@@ -1415,3 +1416,39 @@ which is what lets a zero sum force zero terms.
 
 In practice: H[y|x] = 0 means the label is fully determined by the features (no irreducible
 noise; the classification analogue of var[t|x] = 0 in Ex. 1.26).
+
+## Exercise 1.35 (\*) www
+
+> Use the results (1.106) and (1.107) to show that the entropy of the univariate Gaussian (1.109)
+> is given by (1.110).
+
+Context: §1.6, differential entropy (1.104); maximum entropy under the constraints (1.105)–(1.107).
+
+Handwritten original: [`ex-1.35-handwritten.png`](ex-1.35-handwritten.png).
+
+### Solution
+
+H[x] = −∫ p(x) ln p(x) dx with p(x) = N(x|μ, σ²). The log eats the exp:
+
+ln N(x|μ, σ²) = ln(1/√(2πσ²)) − (x − μ)²/(2σ²).
+
+Split the integral in two:
+
+- First term: ln(1/√(2πσ²)) does not depend on x, so it comes out of the integral, and
+  ∫ p(x) dx = 1 by normalisation (1.105). Gives −ln(1/√(2πσ²)) = ½ ln(2πσ²).
+- Second term: ∫ p(x) (x − μ)² dx = σ² by (1.107), so it gives σ²/(2σ²) = ½.
+
+**H[x] = ½ (1 + ln(2πσ²)).** ∎
+
+### Review notes (professor)
+
+His own derivation, two hints. He started with log₂: Bishop switches to natural logs in §1.6
+(units: nats instead of bits; log₂ p = ln p / ln 2, so only a constant factor changes). His
+expansion of the log already assumed ln, since only ln undoes exp. At the constant term he wrote
+"1?" under the whole integral: only ∫ N dx = 1; the constant ln(1/√(2πσ²)) has to be pulled out
+first. Notation: N(x|μ, σ²), the second argument is the variance. Same technique as Ex. 1.30
+(average a log-Gaussian under a Gaussian).
+
+In practice: entropy grows with ln σ (wider = more uncertain), and is independent of μ. Unlike
+discrete entropy it can be negative (σ² < 1/(2πe)). Among all densities with variance σ² the
+Gaussian has the largest entropy (§1.6), which is one reason it is the default noise model.
