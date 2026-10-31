@@ -35,7 +35,7 @@ Open: 1.2 (regularised version of 1.1).
 Skipped, plan correct (approach checked, algebra not written out): 1.9 (mode of the Gaussian:
 dN/dx = 0 gives x = μ); 1.13 (variance estimate around the true μ is unbiased:
 (1/N)Σₙ E[(xₙ − μ)²] = σ²; contrast with 1.12); 1.23 (general loss + priors: choose j minimizing
-Σ_k L_kj p(x|C_k) p(C_k)); 1.24 (reject option: θ = 1 − λ); 1.31 (H[x, y] ≤ H[x] + H[y] via mutual information = KL ≥ 0); 1.33 (H[y|x] = 0 ⇔ y = f(x)).
+Σ_k L_kj p(x|C_k) p(C_k)); 1.24 (reject option: θ = 1 − λ); 1.31 (H[x, y] ≤ H[x] + H[y] via mutual information = KL ≥ 0); 1.33 (H[y|x] = 0 ⇔ y = f(x)); 1.37 (H[x, y] = H[y|x] + H[x] via the product rule).
 
 Gaps found, to practise (practice in [`../practice-map.md`](../practice-map.md), rows §1.2.5/§1.5.5):
 
@@ -50,7 +50,9 @@ Gaps found, to practise (practice in [`../practice-map.md`](../practice-map.md),
 
 Skipped by choice: 1.15, 1.16 (exact parameter count for order M, induction/combinatorics; the
 D^M message is in §1.4); 1.28 (h(x) = −log p from a functional equation; the fact itself is in
-the text and is what gets used).
+the text and is what gets used). 1.36 (convex ⇔ f'' > 0: a calculus theorem;
+the fact was used in 1.29); 1.38 (Jensen by induction: the inequality is what gets used, in 1.29
+and KL ≥ 0).
 
 ---
 
@@ -1452,3 +1454,27 @@ first. Notation: N(x|μ, σ²), the second argument is the variance. Same techni
 In practice: entropy grows with ln σ (wider = more uncertain), and is independent of μ. Unlike
 discrete entropy it can be negative (σ² < 1/(2πe)). Among all densities with variance σ² the
 Gaussian has the largest entropy (§1.6), which is one reason it is the default noise model.
+
+## Exercise 1.37 (\*) (skipped, plan correct)
+
+> Using the definition (1.111) together with the product rule of probability, prove the result
+> (1.112).
+
+Context: §1.6, conditional entropy (1.111)–(1.112); product rule (1.11), sum rule (1.31).
+
+Plan (his, from discussion on 31.10.2026; no page):
+
+1. H[y|x] = −∫∫ p(x, y) ln p(y|x) dx dy. Keep the joint as the weight; replace only inside the
+   log, by the product rule: p(y|x) = p(x, y)/p(x), so ln p(y|x) = ln p(x, y) − ln p(x).
+2. First integral: −∫∫ p(x, y) ln p(x, y) dx dy = H[x, y].
+3. Second integral: +∫∫ p(x, y) ln p(x) dx dy. Integrate over y first: ∫ p(x, y) dy = p(x) by
+   the sum rule, leaving ∫ p(x) ln p(x) dx = −H[x].
+4. H[y|x] = H[x, y] − H[x], i.e. H[x, y] = H[y|x] + H[x]. ∎
+
+Review notes: step 3's sum-rule integration was the missing piece in his plan (same move as Ex.
+1.31: a joint weight becomes a marginal only after integrating out the other variable). His
+remark: the product rule written both ways, p(y|x)p(x) = p(x|y)p(y), is Bayes' theorem.
+
+In practice: describing x and y together = describing x, then y given x. Same chain as
+ln p(x, y) = ln p(x) + ln p(y|x), which is how log-likelihoods of sequences and graphical models
+(Ch. 8) are built.
