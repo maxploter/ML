@@ -24,6 +24,37 @@ test: does it make me do a step that later chapters reuse?
 (Wishart, multivariate t: the univariate cases carry the idea); 2.51–2.55 (von Mises, periodic
 data: niche); every other (\*\*) or (\*\*\*) without www.
 
-Solved (date): none yet.
+Solved (date):
+
+- 2.1 (02.11.2026)
 
 ---
+
+## Exercise 2.1 (\*) www
+
+> Verify that the Bernoulli distribution (2.2) satisfies the following properties
+> Σ over x = 0, 1 of p(x|μ) = 1 (2.257), E[x] = μ (2.258), var[x] = μ(1 − μ) (2.259).
+> Show that the entropy H[x] of a Bernoulli distributed random binary variable x is given by
+> H[x] = −μ ln μ − (1 − μ) ln(1 − μ) (2.260).
+
+Context: §2.1, Bernoulli distribution (2.2) p(x|μ) = μ^x (1 − μ)^(1−x); entropy (1.93) in nats.
+
+Handwritten original: [`ex-2.1-handwritten.png`](ex-2.1-handwritten.png).
+
+### Solution
+
+x takes two values, so every sum has two terms: p(0|μ) = 1 − μ, p(1|μ) = μ.
+
+- Σ p(x|μ) = (1 − μ) + μ = 1.
+- E[x] = 0 · (1 − μ) + 1 · μ = μ.
+- var[x] = E[x²] − E[x]² (Ex. 1.5). x² = x for x ∈ {0, 1}, so E[x²] = μ and var[x] = μ − μ² = μ(1 − μ).
+- H[x] = −Σ p ln p = −(1 − μ) ln(1 − μ) − μ ln μ. ∎
+
+### Review notes (professor)
+
+All his own, no hints. The normalisation line is stated rather than shown (the two terms
+(1 − μ) + μ). The rest is complete.
+
+In practice: a Bernoulli variable is a binary label; logistic regression outputs μ = p(C₁|x)
+(§4.3). var = μ(1 − μ) is largest at μ = ½, and so is H (= ln 2): a 50/50 label is the most
+uncertain. −ln of this likelihood, summed over data, is the binary cross-entropy loss.
