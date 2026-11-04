@@ -30,6 +30,12 @@ by Ex. 1.10); 2.10, 2.42 (Ex. 2.6 again for Dirichlet and gamma); 2.35 (Ex. 1.12
 2.39 (covered by 2.36); 2.44 (Gaussian-gamma posterior); 2.18, 2.23, 2.25, 2.29, 2.33, 2.37, 2.49
 (more algebra on results the list already derives).
 
+Gaps found, to practise:
+
+- Changing the order of integration over a non-rectangular region (Ex. 2.5: 0 ≤ x ≤ t). Sketch
+  the region, then read the limits the other way. Practice: the double-integral section of
+  Демидович (problems on changing the order of integration).
+
 Solved (date):
 
 - 2.1 (02.11.2026)
