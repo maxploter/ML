@@ -27,6 +27,7 @@ data: niche); every other (\*\*) or (\*\*\*) without www.
 Solved (date):
 
 - 2.1 (02.11.2026)
+- 2.8 (04.11.2026)
 
 ---
 
@@ -58,3 +59,55 @@ All his own, no hints. The normalisation line is stated rather than shown (the t
 In practice: a Bernoulli variable is a binary label; logistic regression outputs μ = p(C₁|x)
 (§4.3). var = μ(1 − μ) is largest at μ = ½, and so is H (= ln 2): a 50/50 label is the most
 uncertain. −ln of this likelihood, summed over data, is the binary cross-entropy loss.
+
+## Exercise 2.8 (\*)
+
+> Consider two variables x and y with joint distribution p(x, y). Prove the following two
+> results
+> E[x] = E_y[E_x[x|y]] (2.270)
+> var[x] = E_y[var_x[x|y]] + var_y[E_x[x|y]]. (2.271)
+> Here E_x[x|y] denotes the expectation of x under the conditional distribution p(x|y), with a
+> similar notation for the conditional variance.
+
+Context: §1.2.2, expectations with a subscript (1.36) and conditional expectation (1.37); sum
+rule (1.10), product rule (1.11); var = E[·²] − E[·]² (1.39).
+
+Handwritten original: [`ex-2.8-handwritten.png`](ex-2.8-handwritten.png) (begun 02.11, finished
+04.11.2026).
+
+### Solution
+
+**Mean.** E_x[x|y] = ∫ x p(x|y) dx is a function of y only; E_y averages it with weight p(y):
+
+E_y[E_x[x|y]] = ∫ ( ∫ x p(x|y) dx ) p(y) dy = ∫∫ x p(x, y) dx dy (p(y) moved inside, product rule)
+= ∫ x ( ∫ p(x, y) dy ) dx = ∫ x p(x) dx = E[x] (sum rule). ∎
+
+The same steps with x² in place of x give E_y[E_x[x²|y]] = E[x²].
+
+**Variance.** Expand both terms with var = E[·²] − E[·]²:
+
+- E_y[var_x[x|y]] = E_y[E_x[x²|y]] − E_y[(E_x[x|y])²]
+- var_y[E_x[x|y]] = E_y[(E_x[x|y])²] − (E_y[E_x[x|y]])²
+
+The middle terms cancel. What is left is E_y[E_x[x²|y]] − (E_y[E_x[x|y]])² = E[x²] − E[x]² =
+var[x]. ∎
+
+### Review notes (professor)
+
+His own algebra, three corrections on the way:
+1. The outer average was first written with y as the weight (∫ y ∫ x p(x|y) dx). The weight is
+   p(y), with its own dy.
+2. var_x[E_x[x|y]] instead of var_y. E_x[x|y] has no x left in it, so only its spread over y
+   exists.
+3. He wrote E_x[(x|y)²]: the square belongs on x, E_x[x²|y]. "x|y" only says which distribution
+   the average uses.
+
+He found the cancellation himself, and the last step (E_y[E_x[x²|y]] = ∫∫ x² p(x, y) = E[x²]).
+Linearity of expectation (E[a − b] = E[a] − E[b]) was asked and confirmed.
+
+In practice: with x the target and y the features, (2.270) says the average prediction of the
+true regression function equals the average target. That is why a calibrated classifier's mean
+predicted probability equals the class base rate. (2.271) splits total variance into noise within
+groups and spread of the group means. That gives explained vs unexplained variance (R²), the
+regression-tree split criterion, aleatoric vs epistemic uncertainty in ensembles and Bayesian
+predictions, and the variance of a mixture (Ch. 9).
