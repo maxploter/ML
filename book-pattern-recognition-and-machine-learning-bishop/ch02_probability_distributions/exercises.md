@@ -4,12 +4,12 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 2, ex
 
 ## Status
 
-Exercise list (fixed 02.11.2026). Default: every (\*) plus the (\*\*) www ones, then cut by one
-test: does it make me do a step that later chapters reuse?
+Exercise list (fixed 02.11.2026, revised 04.11.2026). Test for every exercise, read in full: does
+it make me do a step that later chapters or real ML work reuse? The book's marks only break ties.
 
-**Solve (18):**
+**Solve (19):**
 - §2.1–2.2, discrete: 2.1 (Bernoulli moments, entropy), 2.5 (beta normalisation), 2.6 (beta mean,
-  variance, mode), 2.8 (law of total expectation and variance), 2.11 (Dirichlet E[ln μ])
+  variance, mode), 2.7 (posterior mean between prior mean and ML estimate: shrinkage), 2.8 (law of total expectation and variance), 2.11 (Dirichlet E[ln μ])
 - §2.3, Gaussian: 2.17 (precision can be taken symmetric), 2.20 (positive definite ⇔ positive
   eigenvalues), 2.27 (sum of independent vectors), 2.30 (Bayes for Gaussians), 2.34 (ML covariance),
   2.38 (completing the square: posterior of the mean), 2.40 (multivariate posterior mean)
@@ -18,11 +18,17 @@ test: does it make me do a step that later chapters reuse?
 - §2.4–2.5: 2.56 (beta, gamma, von Mises as exponential family), 2.58 (moments from ln g(η)),
   2.60 (histogram density by maximum likelihood)
 
-**Triage, plan only (10):** 2.3, 2.12, 2.21, 2.22, 2.24, 2.36, 2.47, 2.57, 2.59, 2.61.
+**Triage, plan only (15):** 2.3, 2.12, 2.13 (KL between multivariate Gaussians: the VAE term),
+2.15 (multivariate Gaussian entropy), 2.19 (eigen-expansion of Σ: PCA), 2.21, 2.22, 2.24, 2.26
+(Woodbury: Ch. 3, Gaussian processes), 2.31 (sum of Gaussians: Kalman filter, predictive
+distributions), 2.36, 2.47, 2.57, 2.59, 2.61.
 
 **Skipped by choice:** 2.14 (maximum entropy by calculus of variations, like 1.34); 2.45, 2.48–2.50
 (Wishart, multivariate t: the univariate cases carry the idea); 2.51–2.55 (von Mises, periodic
-data: niche); every other (\*\*) or (\*\*\*) without www.
+data: niche); 2.2 (Bernoulli on {−1, 1}: re-parametrisation); 2.4 (binomial moments: N × Ex. 2.1
+by Ex. 1.10); 2.10, 2.42 (Ex. 2.6 again for Dirichlet and gamma); 2.35 (Ex. 1.12 in matrix form);
+2.39 (covered by 2.36); 2.44 (Gaussian-gamma posterior); 2.18, 2.23, 2.25, 2.29, 2.33, 2.37, 2.49
+(more algebra on results the list already derives).
 
 Solved (date):
 
