@@ -41,6 +41,10 @@ Solved (date):
 - 2.1 (02.11.2026)
 - 2.8 (04.11.2026)
 
+In progress: 2.5 (04.11.2026: done up to the swapped integral ∫ over t from 0 to ∞ of ∫ over x
+from 0 to t; next: x = tμ with t fixed, dx = t dμ, μ from 0 to 1, collect powers of t, recognise
+Γ(a + b) by (1.141)).
+
 ---
 
 ## Exercise 2.1 (\*) www
