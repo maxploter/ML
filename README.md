@@ -17,6 +17,8 @@ The project is organized into subprojects, each with its own focus and set of ex
 * MLT - University of Tartu Machine Learning (2023, `course-ml-tartu-2023`)
 * MLV - Course Voron
 * PRML - Bishop, Pattern Recognition and Machine Learning
+* HSE - HSE Machine Learning in Economics (Potanin, `course-ml-hse-bogdanpotanin`)
+* KAG - Kaggle Playground practice (`kaggle-playground`)
 
 ### Admin prefixes
 
