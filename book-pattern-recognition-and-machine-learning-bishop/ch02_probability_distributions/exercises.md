@@ -35,15 +35,16 @@ Gaps found, to practise:
 - Changing the order of integration over a non-rectangular region (Ex. 2.5: 0 ≤ x ≤ t). Sketch
   the region, then read the limits the other way. Practice: the double-integral section of
   Демидович (problems on changing the order of integration).
+- Substitution in an inner integral while the outer variable is held fixed (Ex. 2.5: x = tμ, so
+  dx = t dμ, not μ dt, and the limits move from x ∈ [0, t] to μ ∈ [0, 1]). He wrote μ dt twice
+  (04.11 and 08.11). Practice: the same Демидович section, substitutions in iterated integrals;
+  then redo 2.5 from a blank page.
 
 Solved (date):
 
 - 2.1 (02.11.2026)
+- 2.5 (08.11.2026)
 - 2.8 (04.11.2026)
-
-In progress: 2.5 (04.11.2026: done up to the swapped integral ∫ over t from 0 to ∞ of ∫ over x
-from 0 to t; next: x = tμ with t fixed, dx = t dμ, μ from 0 to 1, collect powers of t, recognise
-Γ(a + b) by (1.141)).
 
 ---
 
@@ -75,6 +76,54 @@ All his own, no hints. The normalisation line is stated rather than shown (the t
 In practice: a Bernoulli variable is a binary label; logistic regression outputs μ = p(C₁|x)
 (§4.3). var = μ(1 − μ) is largest at μ = ½, and so is H (= ln 2): a 50/50 label is the most
 uncertain. −ln of this likelihood, summed over data, is the binary cross-entropy loss.
+
+## Exercise 2.5 (\*\*) www
+
+> In this exercise, we prove the normalization of the beta distribution, given by (2.13) by
+> showing that the integral
+> ∫ from 0 to 1 of μ^(a−1) (1 − μ)^(b−1) dμ = Γ(a)Γ(b) / Γ(a + b) (2.265)
+> holds. To do this, use the definition (1.141) of the gamma function to obtain
+> Γ(a)Γ(b) = ∫ from 0 to ∞ of exp(−x) x^(a−1) dx · ∫ from 0 to ∞ of exp(−y) y^(b−1) dy. (2.266)
+> Use this expression to prove (2.265) as follows. First bring the integral over y inside the
+> integrand of the integral over x, next make the change of variable t = y + x where x is fixed,
+> then interchange the order of the x and t integrations, and finally make the change of variable
+> x = tμ where t is fixed.
+
+Context: §2.1.1, beta distribution (2.13); gamma function (1.141) Γ(x) = ∫ from 0 to ∞ of
+u^(x−1) e^(−u) du.
+
+Handwritten original: [`ex-2.5-handwritten.png`](ex-2.5-handwritten.png) (begun 04.11, finished
+08.11.2026).
+
+### Solution
+
+1. Both integrals in (2.266) together: Γ(a)Γ(b) = ∫∫ exp(−(x + y)) x^(a−1) y^(b−1) dy dx, both from
+   0 to ∞.
+2. Inner integral, x fixed: t = y + x, dt = dy, y from 0 to ∞ becomes t from x to ∞:
+   ∫ over x from 0 to ∞ of ∫ over t from x to ∞ of exp(−t) x^(a−1) (t − x)^(b−1) dt dx.
+3. Swap the order. The region is 0 ≤ x ≤ t < ∞; read with t outside: t from 0 to ∞, x from 0 to t:
+   ∫ over t from 0 to ∞ of ∫ over x from 0 to t of exp(−t) x^(a−1) (t − x)^(b−1) dx dt.
+4. Inner integral, t fixed: x = tμ, dx = t dμ, x from 0 to t becomes μ from 0 to 1.
+   (tμ)^(a−1) = t^(a−1) μ^(a−1) and (t − tμ)^(b−1) = t^(b−1) (1 − μ)^(b−1). The powers of t:
+   t^(a−1) · t^(b−1) · t = t^(a+b−1). The μ integral has no t, so the double integral splits:
+   Γ(a)Γ(b) = ∫ from 0 to ∞ of t^(a+b−1) e^(−t) dt · ∫ from 0 to 1 of μ^(a−1) (1 − μ)^(b−1) dμ
+   = Γ(a + b) · ∫ from 0 to 1 of μ^(a−1) (1 − μ)^(b−1) dμ.
+5. Divide by Γ(a + b): (2.265). ∎ So the factor Γ(a + b) / (Γ(a)Γ(b)) in (2.13) makes the beta
+   density integrate to 1.
+
+### Review notes (professor)
+
+His own, over two sessions, with hints at each of the three moves. Steps 1–3 were done on 04.11;
+the swap of order took the longest (he drew the region 0 ≤ x ≤ t himself). On 08.11 he twice wrote
+dx = μ dt for x = tμ: the inner variable is μ, t is a constant there, so dx = t dμ, and the limits
+must move with the variable (x ∈ [0, t] → μ ∈ [0, 1]). He then tried to split the t integral into
+Γ(a) times something; one exp(−t) means one gamma, of the summed exponent. Final page complete.
+Both calculus slips are logged in the gaps list above.
+
+In practice: this is the normaliser of the beta prior, the conjugate prior for a Bernoulli rate
+(§2.1.1). It is the constant behind Bayesian A/B tests, Thompson sampling, and smoothed rates
+(posterior mean (m + a)/(N + a + b)), and the same Γ(a + b)/(Γ(a)Γ(b)) appears in the Dirichlet
+(2.38).
 
 ## Exercise 2.8 (\*)
 
