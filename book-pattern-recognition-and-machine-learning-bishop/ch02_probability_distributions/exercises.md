@@ -44,6 +44,7 @@ Solved (date):
 
 - 2.1 (02.11.2026)
 - 2.5 (08.11.2026)
+- 2.6 (08.11.2026)
 - 2.8 (04.11.2026)
 
 ---
@@ -124,6 +125,58 @@ In practice: this is the normaliser of the beta prior, the conjugate prior for a
 (§2.1.1). It is the constant behind Bayesian A/B tests, Thompson sampling, and smoothed rates
 (posterior mean (m + a)/(N + a + b)), and the same Γ(a + b)/(Γ(a)Γ(b)) appears in the Dirichlet
 (2.38).
+
+## Exercise 2.6 (\*)
+
+> Make use of the result (2.265) to show that the mean, variance, and mode of the beta
+> distribution (2.13) are given respectively by
+> E[μ] = a / (a + b) (2.267), var[μ] = ab / ((a + b)²(a + b + 1)) (2.268),
+> mode[μ] = (a − 1) / (a + b − 2). (2.269)
+
+Context: §2.1.1, beta distribution (2.13); (2.265) from Ex. 2.5; Γ(x + 1) = xΓ(x) (Ex. 1.17).
+
+Handwritten original: [page 1, mean and variance](ex-2.6-handwritten-1.png),
+[page 2, mode](ex-2.6-handwritten-2.png) (08.11.2026).
+
+### Solution
+
+**Mean.** Multiply the density by μ: μ · μ^(a−1) = μ^((a+1)−1). The integral is (2.265) with a
+replaced by a + 1:
+
+E[μ] = Γ(a + b)/(Γ(a)Γ(b)) · Γ(a + 1)Γ(b)/Γ(a + b + 1). Cancel Γ(b); Γ(a + 1) = aΓ(a) and
+Γ(a + b + 1) = (a + b)Γ(a + b), so E[μ] = a/(a + b). ∎
+
+**Variance.** var[μ] = E[μ²] − E[μ]². The same step with a + 2:
+E[μ²] = Γ(a + b)/(Γ(a)Γ(b)) · Γ(a + 2)Γ(b)/Γ(a + b + 2). Apply the recursion twice:
+Γ(a + 2) = (a + 1)aΓ(a), Γ(a + b + 2) = (a + b + 1)(a + b)Γ(a + b). So
+E[μ²] = a(a + 1)/((a + b)(a + b + 1)), and over the common denominator (a + b)²(a + b + 1):
+
+numerator = a(a + 1)(a + b) − a²(a + b + 1) = a³ + a²b + a² + ab − a³ − a²b − a² = ab. ∎
+
+**Mode.** The mode is the μ where the density peaks, not the peak height. Drop the constant (it
+does not move the peak) and set the derivative of μ^(a−1)(1 − μ)^(b−1) to zero (product rule):
+
+(a − 1)μ^(a−2)(1 − μ)^(b−1) − (b − 1)μ^(a−1)(1 − μ)^(b−2) = 0.
+
+Divide by μ^(a−2)(1 − μ)^(b−2): (a − 1)(1 − μ) = (b − 1)μ, so μ = (a − 1)/(a + b − 2). ∎
+(He wrote it as (1 − a)/(2 − a − b), the same fraction.) It is an interior maximum only for
+a > 1 and b > 1; otherwise the density peaks at an end of [0, 1] or (a = b = 1) is flat.
+
+### Review notes (professor)
+
+His own, with one hint per step. Mean: he saw μ · μ^(a−1) = μ^((a+1)−1) and read (2.265) with
+a + 1 himself. Variance: first wrote Γ(a + 2) = (a − 1)aΓ(a); the recursion only steps up,
+Γ(a + 2) = (a + 1)Γ(a + 1). The sign check would have caught it: his numerator came out
+−2a² − ab, and a variance cannot be negative. Mode: he first wrote "mode = derivative" (the mode
+is where the derivative is zero) and got the chain-rule sign of (1 − μ)^(b−1) wrong (a double
+minus). He then took logs of both sides, which is valid but longer than dividing out the common
+powers. He asked what a mode is: first time computing one.
+
+In practice: with a Beta(a, b) prior and m ones in N Bernoulli trials, the posterior is
+Beta(m + a, N − m + b) (2.18). Its mean (m + a)/(N + a + b) is the smoothed rate used for
+click-through rates and A/B tests (Laplace smoothing is a = b = 1). Its mode
+(m + a − 1)/(N + a + b − 2) is the MAP estimate, and with a = b = 1 it is the maximum-likelihood
+m/N. The variance shrinks like 1/N: more data, narrower posterior (Figure 2.3).
 
 ## Exercise 2.8 (\*)
 
