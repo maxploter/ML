@@ -7,9 +7,9 @@ Source: Bishop, *Pattern Recognition and Machine Learning* (2006), Chapter 2, ex
 Exercise list (fixed 02.11.2026, revised 04.11.2026). Test for every exercise, read in full: does
 it make me do a step that later chapters or real ML work reuse? The book's marks only break ties.
 
-**Solve (19):**
+**Solve (20):**
 - §2.1–2.2, discrete: 2.1 (Bernoulli moments, entropy), 2.5 (beta normalisation), 2.6 (beta mean,
-  variance, mode), 2.7 (posterior mean between prior mean and ML estimate: shrinkage), 2.8 (law of total expectation and variance), 2.11 (Dirichlet E[ln μ])
+  variance, mode), 2.7 (posterior mean between prior mean and ML estimate: shrinkage), 2.8 (law of total expectation and variance), 2.10 (Dirichlet mean, variance, covariance; added 14.11.2026 as Γ-recursion practice), 2.11 (Dirichlet E[ln μ])
 - §2.3, Gaussian: 2.17 (precision can be taken symmetric), 2.20 (positive definite ⇔ positive
   eigenvalues), 2.27 (sum of independent vectors), 2.30 (Bayes for Gaussians), 2.34 (ML covariance),
   2.38 (completing the square: posterior of the mean), 2.40 (multivariate posterior mean)
@@ -26,7 +26,7 @@ distributions), 2.36, 2.47, 2.57, 2.59, 2.61.
 **Skipped by choice:** 2.14 (maximum entropy by calculus of variations, like 1.34); 2.45, 2.48–2.50
 (Wishart, multivariate t: the univariate cases carry the idea); 2.51–2.55 (von Mises, periodic
 data: niche); 2.2 (Bernoulli on {−1, 1}: re-parametrisation); 2.4 (binomial moments: N × Ex. 2.1
-by Ex. 1.10); 2.10, 2.42 (Ex. 2.6 again for Dirichlet and gamma); 2.35 (Ex. 1.12 in matrix form);
+by Ex. 1.10); 2.42 (Ex. 2.6 again for gamma); 2.35 (Ex. 1.12 in matrix form);
 2.39 (covered by 2.36); 2.44 (Gaussian-gamma posterior); 2.18, 2.23, 2.25, 2.29, 2.33, 2.37, 2.49
 (more algebra on results the list already derives).
 
@@ -50,6 +50,7 @@ Solved (date):
 - 2.6 (08.11.2026)
 - 2.7 (14.11.2026)
 - 2.8 (04.11.2026)
+- 2.10 (14.11.2026)
 
 ---
 
@@ -312,3 +313,70 @@ predicted probability equals the class base rate. (2.271) splits total variance 
 groups and spread of the group means. That gives explained vs unexplained variance (R²), the
 regression-tree split criterion, aleatoric vs epistemic uncertainty in ensembles and Bayesian
 predictions, and the variance of a mixture (Ch. 9).
+
+## Exercise 2.10 (\*\*)
+
+> Using the property Γ(x + 1) = xΓ(x) of the gamma function, derive the following results for
+> the mean, variance, and covariance of the Dirichlet distribution given by (2.38)
+> E[μ_j] = α_j / α_0 (2.273)
+> var[μ_j] = α_j(α_0 − α_j) / (α_0²(α_0 + 1)) (2.274)
+> cov[μ_j μ_l] = −α_j α_l / (α_0²(α_0 + 1)), j ≠ l (2.275)
+> where α_0 is defined by (2.39).
+
+Context: §2.2.1, Dirichlet (2.38), α_0 = Σ_k α_k (2.39); the same move as the beta mean in Ex. 2.6.
+
+Handwritten original: [page 1, mean](ex-2.10-handwritten-1.png),
+[page 2, variance](ex-2.10-handwritten-2.png), [page 3, covariance](ex-2.10-handwritten-3.png)
+(14.11.2026).
+
+### Solution
+
+One idea for all three parts. Dir(μ | α) integrates to 1 over the simplex, so for any
+parameters α':
+
+∫ ∏_k μ_k^(α'_k − 1) dμ = Γ(α'_1)⋯Γ(α'_K) / Γ(α'_0).
+
+Extra factors of μ in front merge into their own factor of the product and raise that α by one.
+
+**Mean.** μ_i · μ_i^(α_i − 1) = μ_i^(α_i), so α'_i = α_i + 1 and α'_0 = α_0 + 1:
+
+E[μ_i] = Γ(α_0)/(Γ(α_1)⋯Γ(α_K)) · Γ(α_1)⋯Γ(α_i + 1)⋯Γ(α_K)/Γ(α_0 + 1)
+= Γ(α_i + 1)/Γ(α_i) · Γ(α_0)/Γ(α_0 + 1) = α_i/α_0. ∎
+
+**Variance.** μ_j² gives α'_j = α_j + 2, α'_0 = α_0 + 2. Recursion twice:
+E[μ_j²] = (α_j + 1)α_j / ((α_0 + 1)α_0). Then over α_0²(α_0 + 1):
+
+var[μ_j] = (α_j + 1)α_j/((α_0 + 1)α_0) − α_j²/α_0²
+= α_j(α_j α_0 + α_0 − α_0 α_j − α_j) / (α_0²(α_0 + 1)) = α_j(α_0 − α_j)/(α_0²(α_0 + 1)). ∎
+
+**Covariance** (j ≠ l). Still one integral over the simplex. μ_j μ_l raises two different
+parameters: α'_j = α_j + 1, α'_l = α_l + 1, α'_0 = α_0 + 2. So
+E[μ_j μ_l] = α_j α_l / ((α_0 + 1)α_0), and
+
+cov[μ_j, μ_l] = α_j α_l/((α_0 + 1)α_0) − α_j α_l/α_0² = α_j α_l(α_0 − α_0 − 1)/(α_0²(α_0 + 1))
+= −α_j α_l/(α_0²(α_0 + 1)). ∎
+
+Checks: K = 2 with α_1 = a, α_2 = b gives the beta mean and variance of Ex. 2.6. The covariance
+is negative because Σ_k μ_k = 1: if one share rises, the others must fall on average.
+
+### Review notes (professor)
+
+His own algebra, with hints on setup only. On the way:
+1. First attempt wrote E[μ_i] as a sum Σ_i μ_i (μ is continuous: an integral over the simplex),
+   Γ(α_i) on top of the normaliser instead of Γ(α_0), and ∏ α_i^(α_i − 1) instead of
+   ∏ μ_k^(α_k − 1). Fixed after comparing with (2.38).
+2. Thought the other μ_k drop out when averaging μ_i (confusing μ with the one-hot x, whose other
+   entries are 0). They are integrated out, as y in Ex. 2.8.
+3. Wrote ∫₀¹ … dμ_i: the integral is over the whole simplex, dμ.
+4. Labelled E[μ_j²] as var[μ_j] for one line; then subtracted E[μ_j]².
+5. **Γ recursion correct throughout** (after slips in Ex. 2.6 and 2.7).
+
+Asked along the way (reading §2.2): what bold x is (one-hot), why Σ_x in (2.27) runs over the K
+one-hot vectors, sufficient statistics (2.30), the Lagrange multiplier in (2.31) (still not clear:
+revisit with Appendix E at §3.1.4), conjugate prior, simplex.
+
+In practice: a Dirichlet over class or topic proportions has mean α/α_0 and spread controlled by
+α_0 (bigger α_0, tighter around the mean: α_0 is the total pseudo-count). That is the prior in LDA
+topic models, Dirichlet smoothing of multinomial counts (naive Bayes over words, language-model
+smoothing), and Dirichlet-based uncertainty for classifiers. The negative covariance is why the
+components of any probability vector (softmax outputs too) cannot be modelled as independent.
