@@ -40,11 +40,15 @@ Gaps found, to practise:
   (04.11 and 08.11). Practice: the same Демидович section, substitutions in iterated integrals;
   then redo 2.5 from a blank page.
 
+- Gamma recursion direction: Γ(x + 1) = xΓ(x), so Γ(a + 2) = (a + 1)aΓ(a). Wrong in Ex. 2.6
+  ((a − 1)aΓ(a)) and Ex. 2.7 ((x + 1)Γ(x)). Check: Γ(n + 1) = n!, so Γ(3) = 2 = 2·Γ(2).
+
 Solved (date):
 
 - 2.1 (02.11.2026)
 - 2.5 (08.11.2026)
 - 2.6 (08.11.2026)
+- 2.7 (14.11.2026)
 - 2.8 (04.11.2026)
 
 ---
@@ -177,6 +181,85 @@ Beta(m + a, N − m + b) (2.18). Its mean (m + a)/(N + a + b) is the smoothed ra
 click-through rates and A/B tests (Laplace smoothing is a = b = 1). Its mode
 (m + a − 1)/(N + a + b − 2) is the MAP estimate, and with a = b = 1 it is the maximum-likelihood
 m/N. The variance shrinks like 1/N: more data, narrower posterior (Figure 2.3).
+
+## Exercise 2.7 (\*\*)
+
+> Consider a binomial random variable x given by (2.9), with prior distribution for μ given by
+> the beta distribution (2.13), and suppose we have observed m occurrences of x = 1 and l
+> occurrences of x = 0. Show that the posterior mean value of x lies between the prior mean and
+> the maximum likelihood estimate for μ. To do this, show that the posterior mean can be written
+> as λ times the prior mean plus (1 − λ) times the maximum likelihood estimate, where
+> 0 ≤ λ ≤ 1. This illustrates the concept of the posterior distribution being a compromise
+> between the prior distribution and the maximum likelihood solution.
+
+Context: §2.1, μ_ML = m/N (2.8); §2.1.1, beta prior (2.13), posterior (2.18), predictive
+p(x = 1 | D) = E[μ | D] (2.19)–(2.20); (2.265) from Ex. 2.5; Γ(x + 1) = xΓ(x).
+
+Handwritten original: [page 1, E[μ | D] and p(D)](ex-2.7-handwritten-1.png) (12.11.2026),
+[page 2, simplification and λ](ex-2.7-handwritten-2.png) (12.11 and 14.11.2026).
+
+### Solution
+
+**Three quantities.** N = m + l.
+- Prior mean: E[μ] = a/(a + b) (2.15, Ex. 2.6).
+- Maximum likelihood: μ_ML = m/(m + l) (2.8). The binomial likelihood is the Bernoulli
+  likelihood (2.5) times (N choose m), which has no μ in it, so the maximum does not move.
+- Posterior mean: E[μ | D] = ∫₀¹ μ p(D | μ) p(μ) / p(D) dμ.
+
+**Posterior mean.** Substitute (2.9) and (2.13), pull out the constants
+C = (N choose m) · Γ(a + b)/(Γ(a)Γ(b)), and collect powers: μ · μ^m · μ^(a−1) = μ^(m+a),
+(1 − μ)^l (1 − μ)^(b−1) = (1 − μ)^(l+b−1). By (2.265) with A = m + a + 1, B = l + b:
+
+E[μ | D] = C/p(D) · Γ(m + a + 1)Γ(l + b)/Γ(m + a + l + b + 1).
+
+**Evidence.** Sum rule: p(D) = ∫₀¹ p(D | μ) p(μ) dμ = C · Γ(m + a)Γ(l + b)/Γ(m + a + l + b)
+(the same integral without the extra μ: A = m + a).
+
+Divide; C and Γ(l + b) cancel. With Γ(x + 1) = xΓ(x):
+
+E[μ | D] = (m + a)/(m + a + l + b),
+
+the mean of Beta(m + a, l + b), the posterior (2.18). (Shortcut: read off (2.18) and use Ex. 2.6.)
+
+**Decomposition.** Split the numerator into a + m and give each term the denominator of its mean:
+
+(a + m)/(a + b + m + l) = (a + b)/(a + b + m + l) · a/(a + b) + (m + l)/(a + b + m + l) · m/(m + l),
+
+so λ = (a + b)/(a + b + m + l) and 1 − λ = (m + l)/(a + b + m + l).
+
+**Bounds.** a, b > 0 (Appendix B: otherwise the normaliser (2.265) diverges), so λ > 0. m, l ≥ 0
+are counts, so a + b ≤ a + b + m + l and λ ≤ 1. Both weights are non-negative, so E[μ | D] lies
+between a/(a + b) and m/(m + l). ∎
+
+Limits: N = 0 gives λ = 1 (no data, posterior = prior). N → ∞ gives λ → 0, 1 − λ → 1, so
+E[μ | D] → μ_ML: with enough data the prior washes out (Bishop, after (2.20)).
+
+### Review notes (professor)
+
+His own algebra over two evenings, hints one step at a time. Slips on the way:
+1. First integrand μ · p(μ, x) · p(μ): the joint already contains the prior, so it was counted
+   twice; and 1/p(D) was missing. He fixed both to μ p(D | μ) p(μ)/p(D).
+2. Exponents m + a + 1 and l + b + 1 instead of m + a and l + b − 1: the prior's exponents are
+   a − 1 and b − 1, and the extra μ multiplies μ only.
+3. Bolted the Ex. 2.6 mean (with Beta(m + a + 1, l + b), wrong parameters) onto the integral
+   before p(D) was known. Crossed out.
+4. Γ(m + a + 1) = (m + a + 1)Γ(m + a): the recursion is Γ(x + 1) = xΓ(x). **Same slip as Ex. 2.6.**
+   Check: m = l = 0 must return the prior mean a/(a + b).
+5. Bounds: wrote a ≥ 1, b ≥ 1 and |D| > 0. Neither is needed: a, b > 0 and m, l ≥ 0 suffice.
+   Read "1 − λ → ∞/∞" (an indeterminate form); compute 1 − λ = 1 − (a + b)/(a + b + N) → 1.
+
+He computed p(D) himself, found λ himself, and gave the interpretation unprompted: the posterior
+is a compromise between prior and data. Questions asked: mean vs median (mean = expectation);
+where Bishop names the data D (§2.1 before (2.5), (2.19)); what p(D) means (the evidence); why
+Bernoulli ML applies to the binomial (constant factor); why a, b > 0 (Appendix B, the a ≥ 1 bound
+there is for a finite density, not for existence).
+
+In practice: this is **shrinkage**. a and b act as pseudo-counts, and λ is the share of prior
+pseudo-counts in all counts. A new product with 2 clicks in 3 views gets a smoothed rate pulled
+toward the prior (site-wide) rate; one with 2000 in 3000 keeps its own. That is the smoothed
+click-through rate, Bayesian A/B testing, Laplace smoothing in naive Bayes (a = b = 1), and the
+same pattern as target encoding with smoothing in tabular ML. The same "prior vs data,
+weighted by amounts of information" form returns for the Gaussian mean in Ex. 2.38 / (2.141).
 
 ## Exercise 2.8 (\*)
 
